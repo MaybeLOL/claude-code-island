@@ -45,7 +45,7 @@
   .ghost-mini { width:34px; height:34px; flex-shrink:0; display:block; position:relative; top:4px; left:3px; }
   .ghost-big { width:48px; height:48px; flex-shrink:0; display:block; position:relative; top:3px; left:-4px; }
   .ghost-notif { width:24px; height:24px; display:block; }
-  .ghost-wrap { width:34px; height:34px; flex-shrink:0; display:block; line-height:0; }
+  .ghost-wrap { width:34px; height:34px; flex-shrink:0; display:block; line-height:0; transition:opacity 0.3s ease; }
   .exp-top .ghost-wrap { width:48px; height:48px; }
   .status-dot {
     width:6px; height:6px; border-radius:50%; flex-shrink:0;
@@ -331,11 +331,19 @@
   }
 
   function setGhostState(gs) {
+    if (gs === ghostState) return;
     ghostState = gs;
-    island.className = island.className.replace(/state-\w+/,'state-'+gs);
-    renderGhost($('ghostCompact'), gs);
-    renderGhost($('ghostExp'), gs);
-    renderGhost($('ghostNotif'), gs);
+    // Fade out ghost SVGs
+    var wraps = document.querySelectorAll('.ghost-wrap');
+    wraps.forEach(function(w) { w.style.opacity = '0'; });
+    setTimeout(function() {
+      island.className = island.className.replace(/state-\w+/,'state-'+gs);
+      renderGhost($('ghostCompact'), gs);
+      renderGhost($('ghostExp'), gs);
+      renderGhost($('ghostNotif'), gs);
+      // Fade back in
+      wraps.forEach(function(w) { w.style.opacity = '1'; });
+    }, 300);
   }
 
   setGhostState('idle');
@@ -440,13 +448,17 @@
     else if (was && !running) { notify('Session ended'); push('> Session ended','#666'); }
   });
 
-  window.island.onGhostState(function(gs) { setGhostState(gs); });
+  window.island.onGhostState(function(gs) {
+    setGhostState(gs);
+    // Sync compact label with ghost state
+    if (gs === 'idle') {
+      resetCompactLabel();
+    }
+  });
 
   window.island.onToolStatus(function(s) {
     if (s.label) {
       compactText.textContent = s.label;
-      clearTimeout(compactResetTimer);
-      compactResetTimer = setTimeout(resetCompactLabel, 2000);
       if (s.needsInput) {
         notify('Needs your input');
       }
