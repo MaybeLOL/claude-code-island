@@ -42,7 +42,11 @@
     display:flex; align-items:center; gap:10px;
     padding:0 14px 0 8px; height:48px;
   }
-  .ghost-mini { width:34px; height:34px; flex-shrink:0; }
+  .ghost-mini { width:34px; height:34px; flex-shrink:0; display:block; position:relative; top:4px; left:3px; }
+  .ghost-big { width:48px; height:48px; flex-shrink:0; display:block; position:relative; top:3px; left:-4px; }
+  .ghost-notif { width:24px; height:24px; display:block; }
+  .ghost-wrap { width:34px; height:34px; flex-shrink:0; display:block; line-height:0; }
+  .exp-top .ghost-wrap { width:48px; height:48px; }
   .status-dot {
     width:6px; height:6px; border-radius:50%; flex-shrink:0;
     background:var(--body); box-shadow:0 0 6px var(--body);
@@ -68,8 +72,7 @@
   #island.expanded .compact-view { display:none; }
 
   .exp-top { display:flex; align-items:center; gap:14px; margin-bottom:18px; }
-  .ghost-big { width:48px; height:48px; flex-shrink:0; }
-  .exp-info { flex:1; }
+  .ghost-big { width:48px; height:48px; flex-shrink:0; }  .exp-info { flex:1; }
   .exp-title { font-size:16px; font-weight:700; letter-spacing:-0.4px; }
   .exp-sub { font-size:12px; color:var(--body); font-weight:500; margin-top:2px; transition:color 0.6s ease; }
   .exp-x {
@@ -161,11 +164,10 @@
   @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-1px);} 75%{transform:translateX(1px);} }
   @keyframes bounce { 0%{transform:translateY(0);} 30%{transform:translateY(-4px);} 60%{transform:translateY(0);} }
 
-  .ghost-wrap { display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-  .ghost-idle .ghost-wrap, .state-idle .ghost-wrap { animation:bob 3s ease-in-out infinite; }
-  .ghost-working .ghost-wrap, .state-working .ghost-wrap { animation:bobFast 1.5s ease-in-out infinite; }
-  .ghost-success .ghost-wrap, .state-success .ghost-wrap { animation:bounce 0.6s ease-out; }
-  .ghost-error .ghost-wrap, .state-error .ghost-wrap { animation:shake 0.3s ease-in-out infinite; }
+  .state-idle .ghost-wrap { animation:bob 3s ease-in-out infinite; }
+  .state-working .ghost-wrap { animation:bobFast 1.5s ease-in-out infinite; }
+  .state-success .ghost-wrap { animation:bounce 0.6s ease-out; }
+  .state-error .ghost-wrap { animation:shake 0.3s ease-in-out infinite; }
 </style>
 </head>
 <body>
