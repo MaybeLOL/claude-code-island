@@ -303,6 +303,7 @@ function watchHistory() {
 }
 
 function watchStatus() {
+  let idleTimer = null;
   try {
     fs.watch(STATUS_FILE, () => {
       if (!mainWindow || mainWindow.isDestroyed()) return;
@@ -310,10 +311,24 @@ function watchStatus() {
         const raw = fs.readFileSync(STATUS_FILE, 'utf-8');
         const status = JSON.parse(raw);
         mainWindow.webContents.send('tool-status', status);
+        // Immediately switch to working
+        if (currentGhostState !== 'success' && currentGhostState !== 'error') {
+          currentGhostState = 'working';
+          mainWindow.webContents.send('ghost-state', 'working');
+        }
+        // Reset idle timer
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+          if (currentGhostState === 'working') {
+            currentGhostState = 'idle';
+            if (mainWindow && !mainWindow.isDestroyed()) {
+              mainWindow.webContents.send('ghost-state', 'idle');
+            }
+          }
+        }, 5000);
       } catch (e) {}
     });
   } catch (e) {
-    // File might not exist yet, retry in 5s
     setTimeout(watchStatus, 5000);
   }
 }
