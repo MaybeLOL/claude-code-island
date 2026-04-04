@@ -32,7 +32,7 @@
     border:1px solid rgba(255,255,255,0.06);
     overflow:hidden;
     transition:all 0.55s var(--spring);
-    box-shadow:0 8px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+    box-shadow:none;
   }
 
   /* Compact */
@@ -141,7 +141,7 @@
     position:fixed; top:-50px; left:50%; transform:translateX(-50%);
     background:rgba(22,22,30,0.92); backdrop-filter:blur(24px);
     border:1px solid rgba(255,255,255,0.06);
-    border-radius:20px; box-shadow:0 4px 24px rgba(0,0,0,0.5);
+    border-radius:20px; box-shadow:none;
     padding:10px 18px; display:flex; align-items:center; gap:10px;
     font-size:13px; font-weight:600; color:#fff;
     z-index:200; white-space:nowrap;
@@ -161,7 +161,7 @@
   @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-1px);} 75%{transform:translateX(1px);} }
   @keyframes bounce { 0%{transform:translateY(0);} 30%{transform:translateY(-4px);} 60%{transform:translateY(0);} }
 
-  .ghost-wrap { display:inline-block; }
+  .ghost-wrap { display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .ghost-idle .ghost-wrap, .state-idle .ghost-wrap { animation:bob 3s ease-in-out infinite; }
   .ghost-working .ghost-wrap, .state-working .ghost-wrap { animation:bobFast 1.5s ease-in-out infinite; }
   .ghost-success .ghost-wrap, .state-success .ghost-wrap { animation:bounce 0.6s ease-out; }
