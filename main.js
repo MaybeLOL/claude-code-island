@@ -17,6 +17,7 @@ const CLAUDE_DIR = path.join(os.homedir(), '.claude');
 const SESSIONS_DIR = path.join(CLAUDE_DIR, 'sessions');
 const TASKS_DIR = path.join(CLAUDE_DIR, 'tasks');
 const HISTORY_FILE = path.join(CLAUDE_DIR, 'history.jsonl');
+const STATUS_FILE = path.join(CLAUDE_DIR, 'island-status.json');
 const STARTUP_LINK = path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup', 'ClaudeCodeIsland.lnk');
 
 const COMPACT_WIDTH = 280;
@@ -89,6 +90,7 @@ function createWindow() {
 
   // Watch history.jsonl for new prompts
   watchHistory();
+  watchStatus();
 }
 
 // --- SYSTEM INFO ---
@@ -293,6 +295,22 @@ function watchHistory() {
       } catch (e) {}
     });
   } catch (e) {}
+}
+
+function watchStatus() {
+  try {
+    fs.watch(STATUS_FILE, () => {
+      if (!mainWindow || mainWindow.isDestroyed()) return;
+      try {
+        const raw = fs.readFileSync(STATUS_FILE, 'utf-8');
+        const status = JSON.parse(raw);
+        mainWindow.webContents.send('tool-status', status);
+      } catch (e) {}
+    });
+  } catch (e) {
+    // File might not exist yet, retry in 5s
+    setTimeout(watchStatus, 5000);
+  }
 }
 
 function createTray() {

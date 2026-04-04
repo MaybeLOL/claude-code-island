@@ -442,6 +442,16 @@
 
   window.island.onGhostState(function(gs) { setGhostState(gs); });
 
+  window.island.onToolStatus(function(s) {
+    if (s.label) {
+      compactText.textContent = s.label;
+      clearTimeout(compactResetTimer);
+      compactResetTimer = setTimeout(resetCompactLabel, 5000);
+      // Also push to terminal
+      push(s.label, '');
+    }
+  });
+
   var compactResetTimer = null;
   var lastDir = '';
 
