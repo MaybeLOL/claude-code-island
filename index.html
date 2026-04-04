@@ -179,7 +179,7 @@
         <svg class="ghost-mini" id="ghostCompact" viewBox="0 0 32 32" style="image-rendering:pixelated;"></svg>
       </div>
       <div class="status-dot" id="statusDot"></div>
-      <div class="compact-label" id="compactText">Claude Code Ready</div>
+      <div class="compact-label" id="compactText">Idling...</div>
       <div class="compact-meta">
         <span id="cpuCompact">--</span>
         <span id="memCompact">--</span>
@@ -469,11 +469,7 @@
   var lastDir = '';
 
   function resetCompactLabel() {
-    if (running) {
-      compactText.textContent = lastDir || 'Active';
-    } else {
-      compactText.textContent = 'Claude Code Ready';
-    }
+    compactText.textContent = 'Idling...';
   }
 
   window.island.onNewPrompt(function(e) {
