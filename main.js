@@ -165,18 +165,23 @@ function sendClaudeStatus() {
       prevTasks = tasks.slice();
     }
 
-    // Compute ghost state
+    // Compute ghost state based on recent tool activity
     let newGhost = 'idle';
-    if (aliveSessions.length > 0) {
-      newGhost = 'working';
-    }
+    try {
+      const statusRaw = fs.readFileSync(STATUS_FILE, 'utf-8');
+      const statusData = JSON.parse(statusRaw);
+      if (Date.now() - statusData.timestamp < 5000) {
+        newGhost = 'working';
+      }
+    } catch (e) {}
+
     for (const t of tasks) {
       const prev = prevTasks.find(p => (p.id || p.subject) === (t.id || t.subject));
       if (t.status === 'completed' && prev && prev.status !== 'completed') {
         newGhost = 'success';
         clearTimeout(successTimer);
         successTimer = setTimeout(() => {
-          currentGhostState = aliveSessions.length > 0 ? 'working' : 'idle';
+          currentGhostState = 'idle';
           if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send('ghost-state', currentGhostState);
           }
