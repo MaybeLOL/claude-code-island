@@ -405,6 +405,7 @@
       var n = d.sessions?d.sessions.length:0;
       var cwd = d.sessions&&d.sessions[0]?d.sessions[0].cwd:'';
       var dir = cwd?cwd.split(/[\\/]/).pop():'';
+      lastDir = dir;
       compactText.textContent = n>1?n+' sessions active':dir?dir:'Active';
       expStatus.textContent = n+' session'+(n>1?'s':'')+' running';
     } else {
@@ -441,13 +442,35 @@
 
   window.island.onGhostState(function(gs) { setGhostState(gs); });
 
+  var compactResetTimer = null;
+  var lastDir = '';
+
+  function resetCompactLabel() {
+    if (running) {
+      compactText.textContent = lastDir || 'Active';
+    } else {
+      compactText.textContent = 'Claude Code Ready';
+    }
+  }
+
   window.island.onNewPrompt(function(e) {
     var t = new Date(e.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-    type('['+t+'] '+(e.display?e.display.substring(0,50):'...'));
+    var display = e.display?e.display.substring(0,40):'...';
+    type('['+t+'] '+display);
+    if (running) {
+      compactText.textContent = display;
+      clearTimeout(compactResetTimer);
+      compactResetTimer = setTimeout(resetCompactLabel, 5000);
+    }
   });
 
   window.island.onToast(function(msg) { notify(msg); });
-  window.island.onTaskStarted(function(msg) { notify('Working: '+msg); });
+  window.island.onTaskStarted(function(msg) {
+    notify('Working: '+msg);
+    compactText.textContent = msg;
+    clearTimeout(compactResetTimer);
+    compactResetTimer = setTimeout(resetCompactLabel, 5000);
+  });
 
   function since(ts) {
     var s=Math.floor((Date.now()-ts)/1000);if(s<60)return s+'s';
