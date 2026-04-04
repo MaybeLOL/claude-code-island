@@ -393,3 +393,35 @@ ipcMain.on('toggle-click-through', (event, enabled) => {
     mainWindow.setIgnoreMouseEvents(enabled, { forward: true });
   }
 });
+
+// Terminal jump — focus the terminal window running a Claude Code session by PID
+ipcMain.on('jump-to-terminal', (event, pid) => {
+  if (!pid) return;
+  // Use PowerShell to find the parent terminal window of the Claude process and bring it to front
+  const ps = `
+    Add-Type @"
+    using System;
+    using System.Runtime.InteropServices;
+    public class WinAPI {
+      [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+      [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+    }
+"@
+    try {
+      $proc = Get-Process -Id ${pid} -ErrorAction Stop
+      $hwnd = $proc.MainWindowHandle
+      if ($hwnd -eq [IntPtr]::Zero) {
+        $parent = (Get-CimInstance Win32_Process -Filter "ProcessId=${pid}").ParentProcessId
+        if ($parent) {
+          $pproc = Get-Process -Id $parent -ErrorAction Stop
+          $hwnd = $pproc.MainWindowHandle
+        }
+      }
+      if ($hwnd -ne [IntPtr]::Zero) {
+        [WinAPI]::ShowWindow($hwnd, 9)
+        [WinAPI]::SetForegroundWindow($hwnd)
+      }
+    } catch {}
+  `;
+  exec(`powershell.exe -NoProfile -Command "${ps.replace(/"/g, '\\"').replace(/\n/g, ' ')}"`, () => {});
+});

@@ -45,7 +45,7 @@
   .ghost-mini { width:34px; height:34px; flex-shrink:0; display:block; position:relative; top:4px; left:3px; }
   .ghost-big { width:48px; height:48px; flex-shrink:0; display:block; position:relative; top:3px; left:-4px; }
   .ghost-notif { width:24px; height:24px; display:block; }
-  .ghost-wrap { width:34px; height:34px; flex-shrink:0; display:block; line-height:0; transition:opacity 0.3s ease; }
+  .ghost-wrap { width:34px; height:34px; flex-shrink:0; display:block; line-height:0; transition:opacity 0.15s ease; }
   .exp-top .ghost-wrap { width:48px; height:48px; }
   .status-dot {
     width:6px; height:6px; border-radius:50%; flex-shrink:0;
@@ -118,7 +118,9 @@
     display:flex; align-items:center; gap:8px;
     padding:6px 12px; background:rgba(255,255,255,0.03);
     border-radius:12px; margin-bottom:4px; font-size:11px;
+    cursor:pointer; transition:background 0.2s;
   }
+  .sess-row:hover { background:rgba(255,255,255,0.08); }
   .sess-dot {
     width:6px; height:6px; border-radius:50%;
     background:var(--body); box-shadow:0 0 6px var(--body);
@@ -333,7 +335,6 @@
   function setGhostState(gs) {
     if (gs === ghostState) return;
     ghostState = gs;
-    // Fade out ghost SVGs
     var wraps = document.querySelectorAll('.ghost-wrap');
     wraps.forEach(function(w) { w.style.opacity = '0'; });
     setTimeout(function() {
@@ -341,9 +342,8 @@
       renderGhost($('ghostCompact'), gs);
       renderGhost($('ghostExp'), gs);
       renderGhost($('ghostNotif'), gs);
-      // Fade back in
       wraps.forEach(function(w) { w.style.opacity = '1'; });
-    }, 300);
+    }, 150);
   }
 
   // Initial render (no fade for first render)
@@ -425,7 +425,7 @@
       sessionList.innerHTML = d.sessions.map(function(s) {
         var dir = s.cwd?s.cwd.split(/[\\/]/).slice(-2).join('/'):'?';
         var ago = s.startedAt?since(s.startedAt):'';
-        return '<div class="sess-row"><span class="sess-dot"></span><span class="sess-path">'+esc(dir)+'</span><span class="sess-time">'+ago+'</span></div>';
+        return '<div class="sess-row" onclick="window.island.jumpToTerminal('+s.pid+')"><span class="sess-dot"></span><span class="sess-path">'+esc(dir)+'</span><span class="sess-time">'+ago+'</span></div>';
       }).join('');
     } else { sessionList.innerHTML=''; }
 
