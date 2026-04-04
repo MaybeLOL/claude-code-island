@@ -346,7 +346,12 @@
     }, 300);
   }
 
-  setGhostState('idle');
+  // Initial render (no fade for first render)
+  ghostState = 'idle';
+  island.className = 'compact state-idle';
+  renderGhost($('ghostCompact'), 'idle');
+  renderGhost($('ghostExp'), 'idle');
+  renderGhost($('ghostNotif'), 'idle');
 
   // --- DRAG ---
   island.addEventListener('mousedown', function(e) {
@@ -411,13 +416,8 @@
 
     if (running) {
       var n = d.sessions?d.sessions.length:0;
-      var cwd = d.sessions&&d.sessions[0]?d.sessions[0].cwd:'';
-      var dir = cwd?cwd.split(/[\\/]/).pop():'';
-      lastDir = dir;
-      compactText.textContent = n>1?n+' sessions active':dir?dir:'Active';
       expStatus.textContent = n+' session'+(n>1?'s':'')+' running';
     } else {
-      compactText.textContent = 'Claude Code Ready';
       expStatus.textContent = 'No active sessions';
     }
 
