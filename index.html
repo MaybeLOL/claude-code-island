@@ -424,8 +424,14 @@
     if (d.sessions && d.sessions.length>0) {
       sessionList.innerHTML = d.sessions.map(function(s) {
         var dir = s.cwd?s.cwd.split(/[\\/]/).slice(-2).join('/'):'?';
+        var label = dir;
+        // If multiple sessions share same cwd, append short session ID
+        var sameCwd = d.sessions.filter(function(o){return o.cwd===s.cwd;});
+        if (sameCwd.length > 1 && s.sessionId) {
+          label = dir + ' #' + s.sessionId.substring(0,6);
+        }
         var ago = s.startedAt?since(s.startedAt):'';
-        return '<div class="sess-row" onclick="window.island.jumpToTerminal('+s.pid+')"><span class="sess-dot"></span><span class="sess-path">'+esc(dir)+'</span><span class="sess-time">'+ago+'</span></div>';
+        return '<div class="sess-row" onclick="window.island.jumpToTerminal('+s.pid+')"><span class="sess-dot"></span><span class="sess-path">'+esc(label)+'</span><span class="sess-time">'+ago+'</span></div>';
       }).join('');
     } else { sessionList.innerHTML=''; }
 
