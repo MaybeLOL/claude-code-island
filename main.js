@@ -418,85 +418,24 @@ ipcMain.on('toggle-click-through', (event, enabled) => {
 // Terminal jump — focus the terminal window running a Claude Code session by PID
 ipcMain.on('jump-to-terminal', (event, pid) => {
   if (!pid) return;
-  // Use PowerShell to find the parent terminal window of the Claude process and bring it to front
-  const ps = `
-    Add-Type @"
-    using System;
-    using System.Runtime.InteropServices;
-    public class WinAPI {
-      [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
-      [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-    }
-"@
-    try {
-      $proc = Get-Process -Id ${pid} -ErrorAction Stop
-      $hwnd = $proc.MainWindowHandle
-      if ($hwnd -eq [IntPtr]::Zero) {
-        $parent = (Get-CimInstance Win32_Process -Filter "ProcessId=${pid}").ParentProcessId
-        if ($parent) {
-          $pproc = Get-Process -Id $parent -ErrorAction Stop
-          $hwnd = $pproc.MainWindowHandle
-        }
-      }
-      if ($hwnd -ne [IntPtr]::Zero) {
-        [WinAPI]::ShowWindow($hwnd, 9)
-        [WinAPI]::SetForegroundWindow($hwnd)
-      }
-    } catch {}
-  `;
-  exec(`powershell.exe -NoProfile -Command "${ps.replace(/"/g, '\\"').replace(/\n/g, ' ')}"`, () => {});
+  const script = path.join(__dirname, 'focus-window.ps1');
+  exec(`powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${script}" -Pid ${pid}`, () => {});
 });
 
-// Answer question — write selection to file, then focus terminal and send keystroke
-let lastQuestionSession = null;
+// Answer question — focus terminal and send keystroke to select option
 ipcMain.on('answer-question', (event, idx) => {
-  // Read the current status to get session info
   try {
-    const statusRaw = fs.readFileSync(STATUS_FILE, 'utf-8');
-    const status = JSON.parse(statusRaw);
-    // Write answer file for potential future API use
     const answerFile = path.join(CLAUDE_DIR, 'island-answer.json');
     fs.writeFileSync(answerFile, JSON.stringify({ index: idx, timestamp: Date.now() }));
   } catch (e) {}
 
-  // Find the active Claude session and focus its terminal, then send the number key
   const sessions = readSessions();
   checkAliveSessions(sessions, (alive) => {
     if (alive.length > 0) {
       const pid = alive[0].pid;
-      // Focus terminal then send keystroke (idx+1 for 1-based option number, then Enter)
       const keyNum = idx + 1;
-      const ps = `
-        Add-Type @"
-        using System;
-        using System.Runtime.InteropServices;
-        public class WinAPI {
-          [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
-          [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-        }
-"@
-        Add-Type -AssemblyName System.Windows.Forms
-        try {
-          $proc = Get-Process -Id ${pid} -ErrorAction Stop
-          $hwnd = $proc.MainWindowHandle
-          if ($hwnd -eq [IntPtr]::Zero) {
-            $parent = (Get-CimInstance Win32_Process -Filter "ProcessId=${pid}").ParentProcessId
-            if ($parent) {
-              $pproc = Get-Process -Id $parent -ErrorAction Stop
-              $hwnd = $pproc.MainWindowHandle
-            }
-          }
-          if ($hwnd -ne [IntPtr]::Zero) {
-            [WinAPI]::ShowWindow($hwnd, 9)
-            [WinAPI]::SetForegroundWindow($hwnd)
-            Start-Sleep -Milliseconds 200
-            [System.Windows.Forms.SendKeys]::SendWait('${keyNum}')
-            Start-Sleep -Milliseconds 100
-            [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
-          }
-        } catch {}
-      `;
-      exec(`powershell.exe -NoProfile -Command "${ps.replace(/"/g, '\\"').replace(/\n/g, ' ')}"`, () => {});
+      const script = path.join(__dirname, 'send-key.ps1');
+      exec(`powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${script}" -Pid ${pid} -KeyNum ${keyNum}`, () => {});
     }
   });
 });
