@@ -24,8 +24,12 @@ try {
     if ($hwnd -ne [IntPtr]::Zero) {
         [WinAPI]::ShowWindow($hwnd, 9)
         [WinAPI]::SetForegroundWindow($hwnd)
-        Start-Sleep -Milliseconds 300
-        [System.Windows.Forms.SendKeys]::SendWait("$KeyNum")
+        Start-Sleep -Milliseconds 400
+        # Navigate to the correct option using arrow keys (KeyNum is 1-based)
+        for ($i = 1; $i -lt $KeyNum; $i++) {
+            [System.Windows.Forms.SendKeys]::SendWait("{DOWN}")
+            Start-Sleep -Milliseconds 50
+        }
         Start-Sleep -Milliseconds 100
         [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
     }
