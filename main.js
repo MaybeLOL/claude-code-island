@@ -84,13 +84,14 @@ function createWindow() {
 
   // Polling intervals
   setInterval(() => sendSystemInfo(), 2000);
-  setInterval(() => sendClaudeStatus(), 3000);
+  setInterval(() => sendClaudeStatus(), 1500);
   sendSystemInfo();
   sendClaudeStatus();
 
   // Watch history.jsonl for new prompts
   watchHistory();
   watchStatus();
+  watchSessions();
 }
 
 // --- SYSTEM INFO ---
@@ -298,6 +299,15 @@ function watchHistory() {
           lastHistorySize = stat.size;
         }
       } catch (e) {}
+    });
+  } catch (e) {}
+}
+
+function watchSessions() {
+  try {
+    fs.watch(SESSIONS_DIR, () => {
+      // Session file added or removed — immediately re-poll
+      sendClaudeStatus();
     });
   } catch (e) {}
 }
