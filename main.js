@@ -321,6 +321,17 @@ function watchStatus() {
         const raw = fs.readFileSync(STATUS_FILE, 'utf-8');
         const status = JSON.parse(raw);
         mainWindow.webContents.send('tool-status', status);
+
+        // If AskUserQuestion, auto-expand island and show options
+        if (status.needsInput && status.questions && status.questions.length > 0) {
+          mainWindow.webContents.send('show-question', status.questions[0]);
+          // Expand the window to show the question
+          const { width: sw } = screen.getPrimaryDisplay().workAreaSize;
+          const bounds = mainWindow.getBounds();
+          const x = Math.min(Math.max(bounds.x, 0), sw - EXPANDED_WIDTH);
+          mainWindow.setBounds({ x, y: bounds.y, width: EXPANDED_WIDTH, height: EXPANDED_HEIGHT }, true);
+        }
+
         // Immediately switch to working
         if (currentGhostState !== 'success' && currentGhostState !== 'error') {
           currentGhostState = 'working';
@@ -434,4 +445,58 @@ ipcMain.on('jump-to-terminal', (event, pid) => {
     } catch {}
   `;
   exec(`powershell.exe -NoProfile -Command "${ps.replace(/"/g, '\\"').replace(/\n/g, ' ')}"`, () => {});
+});
+
+// Answer question — write selection to file, then focus terminal and send keystroke
+let lastQuestionSession = null;
+ipcMain.on('answer-question', (event, idx) => {
+  // Read the current status to get session info
+  try {
+    const statusRaw = fs.readFileSync(STATUS_FILE, 'utf-8');
+    const status = JSON.parse(statusRaw);
+    // Write answer file for potential future API use
+    const answerFile = path.join(CLAUDE_DIR, 'island-answer.json');
+    fs.writeFileSync(answerFile, JSON.stringify({ index: idx, timestamp: Date.now() }));
+  } catch (e) {}
+
+  // Find the active Claude session and focus its terminal, then send the number key
+  const sessions = readSessions();
+  checkAliveSessions(sessions, (alive) => {
+    if (alive.length > 0) {
+      const pid = alive[0].pid;
+      // Focus terminal then send keystroke (idx+1 for 1-based option number, then Enter)
+      const keyNum = idx + 1;
+      const ps = `
+        Add-Type @"
+        using System;
+        using System.Runtime.InteropServices;
+        public class WinAPI {
+          [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+          [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        }
+"@
+        Add-Type -AssemblyName System.Windows.Forms
+        try {
+          $proc = Get-Process -Id ${pid} -ErrorAction Stop
+          $hwnd = $proc.MainWindowHandle
+          if ($hwnd -eq [IntPtr]::Zero) {
+            $parent = (Get-CimInstance Win32_Process -Filter "ProcessId=${pid}").ParentProcessId
+            if ($parent) {
+              $pproc = Get-Process -Id $parent -ErrorAction Stop
+              $hwnd = $pproc.MainWindowHandle
+            }
+          }
+          if ($hwnd -ne [IntPtr]::Zero) {
+            [WinAPI]::ShowWindow($hwnd, 9)
+            [WinAPI]::SetForegroundWindow($hwnd)
+            Start-Sleep -Milliseconds 200
+            [System.Windows.Forms.SendKeys]::SendWait('${keyNum}')
+            Start-Sleep -Milliseconds 100
+            [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+          }
+        } catch {}
+      `;
+      exec(`powershell.exe -NoProfile -Command "${ps.replace(/"/g, '\\"').replace(/\n/g, ' ')}"`, () => {});
+    }
+  });
 });

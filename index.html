@@ -141,6 +141,31 @@
   .t-dot.done { background:#70e090; }
   .t-name { font-weight:500; color:#ddd; font-size:11px; }
 
+  /* Question panel */
+  .question-panel {
+    display:none; flex-direction:column; gap:8px;
+    background:rgba(255,255,255,0.03); border-radius:14px;
+    padding:12px; margin-bottom:10px;
+  }
+  .question-panel.active { display:flex; }
+  .question-text {
+    font-size:12px; font-weight:600; color:#fff;
+    line-height:1.4; margin-bottom:4px;
+  }
+  .question-opt {
+    padding:8px 12px; border-radius:10px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
+    cursor:pointer; transition:all 0.2s ease;
+  }
+  .question-opt:hover {
+    background:rgba(255,255,255,0.1);
+    border-color:var(--body);
+  }
+  .question-opt:active { transform:scale(0.97); }
+  .question-opt-label { font-size:12px; font-weight:600; color:#fff; }
+  .question-opt-desc { font-size:10px; color:#888; margin-top:2px; }
+
   /* Notification toast */
   .notif {
     position:fixed; top:-50px; left:50%; transform:translateX(-50%);
@@ -205,6 +230,11 @@
             <line x1="18" y1="6" x2="6" y2="18"/>
           </svg>
         </div>
+      </div>
+
+      <div class="question-panel" id="questionPanel">
+        <div class="question-text" id="questionText"></div>
+        <div id="questionOpts"></div>
       </div>
 
       <div class="label">Activity</div>
@@ -469,6 +499,47 @@
         notify('Needs your input');
       }
     }
+    // Hide question panel when a non-question tool fires
+    if (!s.needsInput) {
+      hideQuestion();
+    }
+  });
+
+  // Question panel
+  var qPanel = $('questionPanel'), qText = $('questionText'), qOpts = $('questionOpts');
+
+  function showQuestion(q) {
+    qText.textContent = q.question;
+    qOpts.innerHTML = q.options.map(function(o, i) {
+      return '<div class="question-opt" data-idx="'+i+'" onclick="window._pickOption('+i+')">' +
+        '<div class="question-opt-label">'+(i+1)+'. '+esc(o.label)+'</div>' +
+        (o.description ? '<div class="question-opt-desc">'+esc(o.description)+'</div>' : '') +
+        '</div>';
+    }).join('');
+    qPanel.classList.add('active');
+    // Auto-expand island
+    if (state === 'compact') set('expanded');
+  }
+
+  function hideQuestion() {
+    qPanel.classList.remove('active');
+    qOpts.innerHTML = '';
+  }
+
+  window._pickOption = function(idx) {
+    var opts = qPanel.querySelectorAll('.question-opt');
+    if (opts[idx]) {
+      // Visual feedback
+      opts[idx].style.background = 'var(--body)';
+      opts[idx].style.borderColor = 'var(--body)';
+      opts[idx].querySelector('.question-opt-label').style.color = '#000';
+    }
+    window.island.answerQuestion(idx);
+    setTimeout(hideQuestion, 500);
+  };
+
+  window.island.onShowQuestion(function(q) {
+    showQuestion(q);
   });
 
   var compactResetTimer = null;

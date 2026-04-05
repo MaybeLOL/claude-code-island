@@ -14,5 +14,7 @@ contextBridge.exposeInMainWorld('island', {
   onTaskStarted: (cb) => ipcRenderer.on('task-started', (_, msg) => cb(msg)),
   onGhostState: (cb) => ipcRenderer.on('ghost-state', (_, state) => cb(state)),
   onToolStatus: (cb) => ipcRenderer.on('tool-status', (_, data) => cb(data)),
-  jumpToTerminal: (pid) => ipcRenderer.send('jump-to-terminal', pid)
+  onShowQuestion: (cb) => ipcRenderer.on('show-question', (_, data) => cb(data)),
+  jumpToTerminal: (pid) => ipcRenderer.send('jump-to-terminal', pid),
+  answerQuestion: (answer) => ipcRenderer.send('answer-question', answer)
 });
