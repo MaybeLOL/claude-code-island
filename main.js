@@ -20,6 +20,12 @@ function restartPolling(interval) {
   claudeStatusInterval = setInterval(() => sendClaudeStatus(), interval);
 }
 
+const activityLog = [];
+const MAX_ACTIVITY = 100;
+const sessionStats = { startTime: null, promptCount: 0, toolCounts: {} };
+let notificationHistory = [];
+const MAX_NOTIFICATIONS = 20;
+
 const pendingQuestions = new Map();
 let questionServer = null;
 const QUESTION_PORT = 47523;
@@ -208,6 +214,20 @@ function createWindow() {
     }
   });
 
+  // Activity log
+  ipcMain.on('request-activity-log', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('activity-log', { type: 'full', entries: activityLog });
+    }
+  });
+
+  // Notification history
+  ipcMain.on('request-notification-history', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('notification-history', notificationHistory);
+    }
+  });
+
   // Polling intervals
   setInterval(() => sendSystemInfo(), 2000);
   restartPolling(appSettings.pollingInterval);
@@ -265,14 +285,29 @@ function sendClaudeStatus() {
     // 3. Read tasks for alive sessions
     const tasks = readTasks(aliveSessions);
 
+    // Track session start time
+    if (aliveSessions.length > 0 && !sessionStats.startTime) {
+      sessionStats.startTime = Date.now();
+    } else if (aliveSessions.length === 0 && sessionStats.startTime) {
+      sessionStats.startTime = null;
+      sessionStats.promptCount = 0;
+      sessionStats.toolCounts = {};
+    }
+
     // 4. Read recent history
     const recentPrompts = readRecentHistory(5);
 
+    const stats = {
+      duration: sessionStats.startTime ? Math.floor((Date.now() - sessionStats.startTime) / 1000) : 0,
+      promptCount: sessionStats.promptCount,
+      toolCounts: { ...sessionStats.toolCounts }
+    };
     mainWindow.webContents.send('claude-status', {
       running: aliveSessions.length > 0,
       sessions: aliveSessions,
       tasks,
-      recentPrompts
+      recentPrompts,
+      stats
     });
 
     // Check for newly completed tasks -> toast notification
@@ -283,7 +318,7 @@ function sendClaudeStatus() {
       for (const t of tasks) {
         const prev = prevTasks.find(p => (p.id || p.subject) === (t.id || t.subject));
         if (t.status === 'completed' && prev && prev.status !== 'completed') {
-          showToast('Done: ' + (t.subject || t.name || 'Task'));
+          showToast('Done: ' + (t.subject || t.name || 'Task'), 'success');
         }
         if (t.status === 'in_progress' && (!prev || prev.status !== 'in_progress')) {
           mainWindow.webContents.send('task-started', t.subject || t.name || 'Task');
@@ -420,6 +455,7 @@ function watchHistory() {
             try {
               const entry = JSON.parse(line);
               mainWindow.webContents.send('new-prompt', entry);
+              sessionStats.promptCount++;
             } catch (e) {}
           }
           lastHistorySize = stat.size;
@@ -447,6 +483,20 @@ function watchStatus() {
         const raw = fs.readFileSync(STATUS_FILE, 'utf-8');
         const status = JSON.parse(raw);
         mainWindow.webContents.send('tool-status', status);
+
+        // Accumulate activity log
+        const entry = {
+          tool: status.tool,
+          label: status.label,
+          timestamp: Date.now(),
+          needsInput: status.needsInput || false
+        };
+        activityLog.push(entry);
+        if (activityLog.length > MAX_ACTIVITY) activityLog.shift();
+        mainWindow.webContents.send('activity-log', { type: 'append', entry });
+
+        // Track tool counts for stats
+        sessionStats.toolCounts[status.tool] = (sessionStats.toolCounts[status.tool] || 0) + 1;
 
         // Question display is handled by TCP server, not status file
 
@@ -509,10 +559,14 @@ function toggleAutoStart(enable) {
   }
 }
 
-function showToast(message) {
+function showToast(message, type) {
+  type = type || 'info';
+  notificationHistory.unshift({ message, type, timestamp: Date.now() });
+  if (notificationHistory.length > MAX_NOTIFICATIONS) notificationHistory.pop();
+
   if (!mainWindow || mainWindow.isDestroyed()) return;
   if (appSettings.notifications !== 'native') {
-    mainWindow.webContents.send('toast', message);
+    mainWindow.webContents.send('toast', { message, type });
   }
   if (appSettings.notifications !== 'inapp' && Notification.isSupported()) {
     new Notification({ title: 'Claude Code Island', body: message, silent: true }).show();
