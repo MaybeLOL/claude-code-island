@@ -15,6 +15,23 @@
   .state-success { --hi:#a0f0b8;--body:#70e090;--shadow:#50c070;--face:#1a6040;--bg-tint:rgba(20,35,25,0.88); }
   .state-error   { --hi:#f0a8a8;--body:#e08080;--shadow:#c06060;--face:#6a2020;--bg-tint:rgba(35,20,20,0.88); }
 
+  /* Light theme overrides */
+  .theme-light { --bg-tint:rgba(240,238,250,0.92); }
+  .theme-light .compact-label, .theme-light .exp-title { color:#111; }
+  .theme-light .exp-sub, .theme-light .label, .theme-light .m-label { color:#555; }
+  .theme-light .m-val, .theme-light .t-name, .theme-light .sess-path { color:#222; }
+  .theme-light .m-track { background:rgba(0,0,0,0.08); }
+  .theme-light .term-box, .theme-light .tasks-box { background:rgba(0,0,0,0.04); }
+  .theme-light .sess-row { background:rgba(0,0,0,0.03); }
+  .theme-light .sess-row:hover { background:rgba(0,0,0,0.06); }
+  .theme-light .compact-meta { color:#888; }
+  .theme-light .notif { background:rgba(240,238,250,0.95); color:#111; }
+  .theme-light .question-panel { background:rgba(0,0,0,0.04); }
+  .theme-light .question-opt { background:rgba(0,0,0,0.04); border-color:rgba(0,0,0,0.1); }
+  .theme-light .question-opt:hover { background:rgba(0,0,0,0.08); }
+  .theme-light .question-opt-label { color:#111; }
+  .theme-light .question-opt-desc { color:#666; }
+
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
     background:transparent; overflow:hidden; user-select:none;
@@ -24,16 +41,20 @@
 
   #island {
     position:absolute; top:0; left:50%; transform:translateX(-50%);
-    transition:all 0.55s var(--spring); cursor:pointer;
+    transition:all 0.4s var(--spring); cursor:pointer;
   }
   .pill {
     background:var(--bg-tint);
-    backdrop-filter:blur(40px); -webkit-backdrop-filter:blur(40px);
-    border:1px solid rgba(255,255,255,0.06);
+    backdrop-filter:blur(50px); -webkit-backdrop-filter:blur(50px);
+    border:1px solid rgba(255,255,255,0.08);
     overflow:hidden;
-    transition:all 0.55s var(--spring);
-    box-shadow:none;
+    transition:all 0.4s var(--spring);
+    box-shadow:0 0 20px rgba(184,174,221,0.15);
   }
+  .state-working .pill { box-shadow:0 0 20px rgba(232,160,144,0.15); }
+  .state-success .pill { box-shadow:0 0 20px rgba(112,224,144,0.15); }
+  .state-error .pill { box-shadow:0 0 20px rgba(224,128,128,0.15); }
+  #island.compact .pill:hover { transform:scale(1.02); }
 
   /* Compact */
   #island.compact { width:280px; height:48px; }
@@ -45,19 +66,22 @@
   .ghost-mini { width:34px; height:34px; flex-shrink:0; display:block; position:relative; top:4px; left:3px; }
   .ghost-big { width:48px; height:48px; flex-shrink:0; display:block; position:relative; top:3px; left:-4px; }
   .ghost-notif { width:24px; height:24px; display:block; }
-  .ghost-wrap { width:34px; height:34px; flex-shrink:0; display:block; line-height:0; transition:opacity 0.15s ease; }
+  .ghost-wrap { width:34px; height:34px; flex-shrink:0; display:block; line-height:0; transition:opacity 0.15s ease; filter:drop-shadow(0 2px 4px rgba(104,88,160,0.3)); }
+  .state-working .ghost-wrap { filter:drop-shadow(0 2px 4px rgba(216,144,128,0.3)); }
+  .state-success .ghost-wrap { filter:drop-shadow(0 2px 4px rgba(80,192,112,0.3)); }
+  .state-error .ghost-wrap { filter:drop-shadow(0 2px 4px rgba(192,96,96,0.3)); }
   .exp-top .ghost-wrap { width:48px; height:48px; }
   .status-dot {
     width:6px; height:6px; border-radius:50%; flex-shrink:0;
     background:var(--body); box-shadow:0 0 6px var(--body);
     animation:pulse 2s ease-in-out infinite;
-    transition:background 0.6s ease, box-shadow 0.6s ease;
+    transition:background 0.4s ease, box-shadow 0.4s ease;
   }
   .status-dot.off { background:#555; box-shadow:none; animation:none; }
   .compact-label {
-    font-size:13px; font-weight:600; white-space:nowrap;
+    font-size:13.5px; font-weight:600; white-space:nowrap;
     overflow:hidden; text-overflow:ellipsis; flex:1;
-    letter-spacing:-0.2px; transition:color 0.6s ease;
+    letter-spacing:-0.2px; transition:color 0.4s ease;
   }
   .compact-meta {
     display:flex; gap:8px; font-size:11px; color:#666;
@@ -74,7 +98,7 @@
   .exp-top { display:flex; align-items:center; gap:14px; margin-bottom:18px; }
   .ghost-big { width:48px; height:48px; flex-shrink:0; }  .exp-info { flex:1; }
   .exp-title { font-size:16px; font-weight:700; letter-spacing:-0.4px; }
-  .exp-sub { font-size:12px; color:var(--body); font-weight:500; margin-top:2px; transition:color 0.6s ease; }
+  .exp-sub { font-size:12px; color:var(--body); font-weight:500; margin-top:2px; transition:color 0.4s ease; }
   .exp-x {
     width:28px; height:28px; border-radius:50%;
     background:rgba(255,255,255,0.06); display:flex;
@@ -85,14 +109,14 @@
 
   .label {
     font-size:10px; color:#555; font-weight:600;
-    text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;
+    text-transform:uppercase; letter-spacing:0.6px; margin-bottom:6px;
   }
   .term-box {
     background:rgba(0,0,0,0.3); border-radius:14px;
     padding:10px 14px; font-size:11px; line-height:1.7;
     font-family:'SF Mono','Cascadia Code','Fira Code',monospace;
     color:var(--body); height:60px; overflow:hidden; margin-bottom:16px;
-    transition:color 0.6s ease;
+    transition:color 0.4s ease;
   }
   .term-box .cur {
     display:inline-block; width:7px; height:12px;
@@ -110,7 +134,7 @@
   .m-track { height:3px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden; }
   .m-fill {
     height:100%; border-radius:2px; background:var(--body);
-    transition:width 0.8s var(--ios), background 0.6s ease; width:0%;
+    transition:width 0.8s var(--ios), background 0.4s ease; width:0%;
   }
 
   .sess-list { margin-bottom:12px; }
@@ -124,7 +148,7 @@
   .sess-dot {
     width:6px; height:6px; border-radius:50%;
     background:var(--body); box-shadow:0 0 6px var(--body);
-    transition:background 0.6s ease;
+    transition:background 0.4s ease;
   }
   .sess-path { flex:1; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#ddd; }
   .sess-time { font-size:10px; color:#555; }
@@ -147,13 +171,13 @@
     background:rgba(255,255,255,0.03); border-radius:14px;
     padding:12px; margin-bottom:10px;
   }
-  .question-panel.active { display:flex; }
+  .question-panel.active { display:flex; animation:qpulse 2s ease-in-out infinite; }
   .question-text {
     font-size:12px; font-weight:600; color:#fff;
     line-height:1.4; margin-bottom:4px;
   }
   .question-opt {
-    padding:8px 12px; border-radius:10px;
+    padding:8px 12px; border-radius:14px;
     background:rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.08);
     cursor:pointer; transition:all 0.2s ease;
@@ -168,16 +192,21 @@
 
   /* Notification toast */
   .notif {
-    position:fixed; top:-50px; left:50%; transform:translateX(-50%);
+    position:fixed; left:50%; transform:translateX(-50%);
     background:rgba(22,22,30,0.92); backdrop-filter:blur(24px);
     border:1px solid rgba(255,255,255,0.06);
-    border-radius:20px; box-shadow:none;
+    border-radius:20px;
+    box-shadow:0 0 15px rgba(184,174,221,0.12);
     padding:10px 18px; display:flex; align-items:center; gap:10px;
     font-size:13px; font-weight:600; color:#fff;
-    z-index:200; white-space:nowrap;
-    transition:top 0.5s var(--spring);
+    z-index:200; white-space:nowrap; cursor:pointer;
+    transition:top 0.5s var(--spring), opacity 0.3s ease;
+    opacity:0; top:-50px; pointer-events:none;
   }
-  .notif.show { top:54px; }
+  .notif.show { opacity:1; pointer-events:auto; }
+  .state-working .notif { box-shadow:0 0 15px rgba(232,160,144,0.12); }
+  .state-success .notif { box-shadow:0 0 15px rgba(112,224,144,0.12); }
+  .state-error .notif { box-shadow:0 0 15px rgba(224,128,128,0.12); }
   .ghost-notif { width:24px; height:24px; }
 
   ::-webkit-scrollbar { width:4px; }
@@ -190,6 +219,7 @@
   @keyframes bobFast { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-2px);} }
   @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-1px);} 75%{transform:translateX(1px);} }
   @keyframes bounce { 0%{transform:translateY(0);} 30%{transform:translateY(-4px);} 60%{transform:translateY(0);} }
+  @keyframes qpulse { 0%,100%{border-color:rgba(255,255,255,0.08);} 50%{border-color:var(--body);} }
 
   .state-idle .ghost-wrap { animation:bob 3s ease-in-out infinite; }
   .state-working .ghost-wrap { animation:bobFast 1.5s ease-in-out infinite; }
