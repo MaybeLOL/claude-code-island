@@ -887,6 +887,7 @@
   // --- DRAG ---
   island.addEventListener('mousedown', function(e) {
     if (e.button !== 0) return;
+    if (e.target.closest('.setting-slider, .setting-toggle, .setting-btn, .setting-radio-opt, .tab-btn, .exp-bell, .question-opt')) return;
     dragging = false; dragT = Date.now();
     window.island.dragStart({x:e.screenX,y:e.screenY});
     function mv(ev){dragging=true;window.island.dragMove({x:ev.screenX,y:ev.screenY});}
