@@ -525,12 +525,6 @@
   </div>
 </div>
 
-<!-- Notification toast -->
-<div class="notif" id="notif">
-  <svg class="ghost-notif" id="ghostNotif" viewBox="0 0 32 32" style="image-rendering:pixelated;"></svg>
-  <span id="notifText"></span>
-</div>
-
 <!-- PLACEHOLDER_SCRIPT -->
 <script>
 (function() {
@@ -540,10 +534,277 @@
   var expStatus = $('expStatus'), terminal = $('terminal');
   var cpuBar = $('cpuBar'), memBar = $('memBar'), cpuVal = $('cpuVal'), memVal = $('memVal');
   var collapseBtn = $('collapseBtn'), taskItems = $('taskItems');
-  var sessionList = $('sessionList'), notifEl = $('notif'), notifText = $('notifText');
+  var sessionList = $('sessionList');
 
   var uiState = 'compact', ghostState = 'idle', running = false;
   var dragging = false, dragT = 0;
+  var currentTab = 'dashboard';
+
+  // Tab switching
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabContents = document.querySelectorAll('.tab-content');
+  var tabIndicator = $('tabIndicator');
+
+  function updateTabIndicator() {
+    var activeBtn = document.querySelector('.tab-btn.active');
+    if (activeBtn && tabIndicator) {
+      tabIndicator.style.left = activeBtn.offsetLeft + 'px';
+      tabIndicator.style.width = activeBtn.offsetWidth + 'px';
+    }
+  }
+
+  function switchTab(tab) {
+    currentTab = tab;
+    tabBtns.forEach(function(btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === tab);
+    });
+    tabContents.forEach(function(tc) {
+      var isActive = tc.getAttribute('data-tab') === tab;
+      tc.classList.toggle('active', isActive);
+      if (isActive) {
+        tc.classList.remove('fade-in');
+        void tc.offsetWidth;
+        tc.classList.add('fade-in');
+      }
+    });
+    updateTabIndicator();
+    if (tab === 'activity') {
+      window.island.requestActivityLog();
+      scrollActivityToBottom();
+    }
+  }
+
+  tabBtns.forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      switchTab(btn.getAttribute('data-tab'));
+    });
+  });
+
+  setTimeout(updateTabIndicator, 100);
+
+  // Activity feed
+  var activityFeed = $('activityFeed');
+  var activityEntries = [];
+
+  function toolDotClass(tool) {
+    if (!tool) return 't-other';
+    if (['Read','Glob','Grep'].indexOf(tool) !== -1) return 't-read';
+    if (['Write','Edit'].indexOf(tool) !== -1) return 't-write';
+    if (tool === 'Bash') return 't-bash';
+    if (tool === 'Agent') return 't-agent';
+    return 't-other';
+  }
+
+  function renderActivityFeed() {
+    if (activityEntries.length === 0) {
+      activityFeed.innerHTML = '<div class="activity-empty">No activity yet</div>';
+      return;
+    }
+    activityFeed.innerHTML = activityEntries.map(function(e) {
+      return '<div class="activity-entry">' +
+        '<span class="activity-dot ' + toolDotClass(e.tool) + '"></span>' +
+        '<span class="activity-label">' + esc(e.label || e.tool || '...') + '</span>' +
+        '<span class="activity-time">' + since(e.timestamp) + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  function scrollActivityToBottom() {
+    if (activityFeed) activityFeed.scrollTop = activityFeed.scrollHeight;
+  }
+
+  window.island.onActivityLog(function(data) {
+    if (data.type === 'full') {
+      activityEntries = data.entries || [];
+    } else if (data.type === 'append' && data.entry) {
+      activityEntries.push(data.entry);
+      if (activityEntries.length > 100) activityEntries.shift();
+    }
+    if (currentTab === 'activity') {
+      renderActivityFeed();
+      scrollActivityToBottom();
+    }
+  });
+
+  // Settings
+  var currentSettings = { opacity: 0.88, pollingInterval: 1500, notifications: 'both', theme: 'dark' };
+
+  var opacitySlider = $('opacitySlider');
+  var opacityVal2 = $('opacityVal');
+  var pollingRadio = $('pollingRadio');
+  var notifRadio = $('notifRadio');
+  var themeToggle = $('themeToggle');
+  var themeLabel = $('themeLabel');
+  var resetPosBtn = $('resetPosBtn');
+
+  function applySettings(s) {
+    currentSettings = s;
+    if (opacitySlider) opacitySlider.value = Math.round(s.opacity * 100);
+    if (opacityVal2) opacityVal2.textContent = Math.round(s.opacity * 100) + '%';
+    if (pollingRadio) {
+      pollingRadio.querySelectorAll('.setting-radio-opt').forEach(function(btn) {
+        btn.classList.toggle('active', parseInt(btn.getAttribute('data-val')) === s.pollingInterval);
+      });
+    }
+    if (notifRadio) {
+      notifRadio.querySelectorAll('.setting-radio-opt').forEach(function(btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-val') === s.notifications);
+      });
+    }
+    if (themeToggle) themeToggle.classList.toggle('on', s.theme === 'light');
+    if (themeLabel) themeLabel.textContent = s.theme === 'light' ? 'Light' : 'Dark';
+    document.body.classList.toggle('theme-light', s.theme === 'light');
+    island.classList.toggle('theme-light', s.theme === 'light');
+  }
+
+  function saveSetting(key, value) {
+    currentSettings[key] = value;
+    window.island.saveSettings(currentSettings);
+  }
+
+  if (opacitySlider) {
+    opacitySlider.addEventListener('input', function() {
+      var val = parseInt(opacitySlider.value) / 100;
+      if (opacityVal2) opacityVal2.textContent = opacitySlider.value + '%';
+      window.island.setOpacity(val);
+    });
+    opacitySlider.addEventListener('change', function() {
+      saveSetting('opacity', parseInt(opacitySlider.value) / 100);
+    });
+  }
+
+  if (pollingRadio) {
+    pollingRadio.querySelectorAll('.setting-radio-opt').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var val = parseInt(btn.getAttribute('data-val'));
+        pollingRadio.querySelectorAll('.setting-radio-opt').forEach(function(b) {
+          b.classList.toggle('active', b === btn);
+        });
+        saveSetting('pollingInterval', val);
+      });
+    });
+  }
+
+  if (notifRadio) {
+    notifRadio.querySelectorAll('.setting-radio-opt').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var val = btn.getAttribute('data-val');
+        notifRadio.querySelectorAll('.setting-radio-opt').forEach(function(b) {
+          b.classList.toggle('active', b === btn);
+        });
+        saveSetting('notifications', val);
+      });
+    });
+  }
+
+  if (themeToggle) {
+    themeToggle.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var newTheme = currentSettings.theme === 'dark' ? 'light' : 'dark';
+      themeToggle.classList.toggle('on', newTheme === 'light');
+      if (themeLabel) themeLabel.textContent = newTheme === 'light' ? 'Light' : 'Dark';
+      document.body.classList.toggle('theme-light', newTheme === 'light');
+      island.classList.toggle('theme-light', newTheme === 'light');
+      saveSetting('theme', newTheme);
+    });
+  }
+
+  if (resetPosBtn) {
+    resetPosBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      window.island.resetPosition();
+    });
+  }
+
+  window.island.onSettingsLoaded(function(s) {
+    applySettings(s);
+  });
+  window.island.requestSettings();
+
+  // Notification history
+  var bellBtn = $('bellBtn');
+  var bellBadge = $('bellBadge');
+  var notifHistoryEl = $('notifHistory');
+  var notifHistoryList = $('notifHistoryList');
+  var notifClearAll = $('notifClearAll');
+  var notifHistoryData = [];
+  var notifHistoryOpen = false;
+  var unseenNotifs = 0;
+
+  function renderNotifHistory() {
+    if (notifHistoryData.length === 0) {
+      notifHistoryList.innerHTML = '<div style="text-align:center;padding:20px;color:#555;font-size:11px;">No notifications</div>';
+      return;
+    }
+    notifHistoryList.innerHTML = notifHistoryData.map(function(n) {
+      var typeClass = 'type-' + (n.type || 'info');
+      var icon = n.type === 'success' ? '&#10003;' : n.type === 'question' ? '?' : '&#8226;';
+      return '<div class="notif-history-entry ' + typeClass + '">' +
+        '<span class="notif-history-icon">' + icon + '</span>' +
+        '<span class="notif-history-msg">' + esc(n.message) + '</span>' +
+        '<span class="notif-history-time">' + since(n.timestamp) + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  if (bellBtn) {
+    bellBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      notifHistoryOpen = !notifHistoryOpen;
+      notifHistoryEl.classList.toggle('open', notifHistoryOpen);
+      if (notifHistoryOpen) {
+        window.island.requestNotificationHistory();
+        unseenNotifs = 0;
+        if (bellBadge) bellBadge.style.display = 'none';
+      }
+    });
+  }
+
+  if (notifClearAll) {
+    notifClearAll.addEventListener('click', function(e) {
+      e.stopPropagation();
+      notifHistoryData = [];
+      renderNotifHistory();
+    });
+  }
+
+  document.addEventListener('click', function(e) {
+    if (notifHistoryOpen && !e.target.closest('.notif-history') && !e.target.closest('.exp-bell')) {
+      notifHistoryOpen = false;
+      notifHistoryEl.classList.remove('open');
+    }
+  });
+
+  window.island.onNotificationHistory(function(data) {
+    notifHistoryData = data || [];
+    renderNotifHistory();
+  });
+
+  // Stats row
+  var statDuration = $('statDuration');
+  var statPrompts = $('statPrompts');
+  var statTools = $('statTools');
+
+  function updateStats(stats) {
+    if (!stats) return;
+    if (statDuration) {
+      var d = stats.duration || 0;
+      if (d < 60) statDuration.textContent = d + 's';
+      else if (d < 3600) statDuration.textContent = Math.floor(d / 60) + 'm';
+      else statDuration.textContent = Math.floor(d / 3600) + 'h ' + Math.floor((d % 3600) / 60) + 'm';
+    }
+    if (statPrompts) statPrompts.textContent = stats.promptCount || 0;
+    if (statTools) {
+      var total = 0;
+      if (stats.toolCounts) {
+        for (var k in stats.toolCounts) total += stats.toolCounts[k];
+      }
+      statTools.textContent = total;
+    }
+  }
   var lines = [], MAX = 3;
 
   // --- GHOST PIXEL DATA ---
@@ -630,7 +891,6 @@
       island.className = island.className.replace(/state-\w+/,'state-'+gs);
       renderGhost($('ghostCompact'), gs);
       renderGhost($('ghostExp'), gs);
-      renderGhost($('ghostNotif'), gs);
       wraps.forEach(function(w) { w.style.opacity = '1'; });
     }, 150);
   }
@@ -640,7 +900,6 @@
   island.className = 'compact state-idle';
   renderGhost($('ghostCompact'), 'idle');
   renderGhost($('ghostExp'), 'idle');
-  renderGhost($('ghostNotif'), 'idle');
 
   // --- DRAG ---
   island.addEventListener('mousedown', function(e) {
@@ -682,11 +941,53 @@
     go();
   }
 
-  // --- NOTIFICATION ---
-  var nt=null;
-  function notify(msg){
-    notifText.textContent=msg;notifEl.classList.add('show');
-    clearTimeout(nt);nt=setTimeout(function(){notifEl.classList.remove('show');},4000);
+  // Toast stacking
+  var toastStack = [];
+  var MAX_TOASTS = 3;
+
+  function notify(msg, type) {
+    var message = typeof msg === 'object' ? msg.message : msg;
+    type = (typeof msg === 'object' ? msg.type : type) || 'info';
+
+    unseenNotifs++;
+    if (bellBadge && !notifHistoryOpen) bellBadge.style.display = 'block';
+
+    var toast = document.createElement('div');
+    toast.className = 'notif show';
+    toast.innerHTML = '<svg class="ghost-notif" viewBox="0 0 32 32" style="image-rendering:pixelated;"></svg><span>' + esc(message) + '</span>';
+    renderGhost(toast.querySelector('svg'), ghostState);
+    document.body.appendChild(toast);
+
+    toastStack.push(toast);
+    if (toastStack.length > MAX_TOASTS) {
+      var old = toastStack.shift();
+      old.remove();
+    }
+    repositionToasts();
+
+    toast.addEventListener('click', function() {
+      dismissToast(toast);
+    });
+
+    setTimeout(function() {
+      dismissToast(toast);
+    }, 4000);
+  }
+
+  function dismissToast(toast) {
+    toast.classList.remove('show');
+    setTimeout(function() {
+      var idx = toastStack.indexOf(toast);
+      if (idx !== -1) toastStack.splice(idx, 1);
+      toast.remove();
+      repositionToasts();
+    }, 300);
+  }
+
+  function repositionToasts() {
+    for (var i = 0; i < toastStack.length; i++) {
+      toastStack[i].style.top = (54 + i * 48) + 'px';
+    }
   }
 
   // --- IPC HANDLERS ---
@@ -730,6 +1031,7 @@
         return '<div class="t-row"><span class="t-dot '+c+'"></span><span class="t-name">'+esc(t.subject||t.name||'Task')+'</span></div>';
       }).join('');
     } else { taskItems.innerHTML='No active tasks'; }
+    if (d.stats) updateStats(d.stats);
 
     if (d.recentPrompts && d.recentPrompts.length>0) {
       lines = d.recentPrompts.slice(-MAX).map(function(p) {
