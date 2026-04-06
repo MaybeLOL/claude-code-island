@@ -152,21 +152,6 @@
     font-size:10px; color:#555; font-weight:600;
     text-transform:uppercase; letter-spacing:0.6px; margin-bottom:6px;
   }
-  .term-box {
-    background:rgba(0,0,0,0.3); border-radius:14px;
-    padding:10px 14px; font-size:11px; line-height:1.7;
-    font-family:'SF Mono','Cascadia Code','Fira Code',monospace;
-    color:var(--body); height:60px; overflow:hidden; margin-bottom:16px;
-    transition:color 0.4s ease;
-  }
-  .term-box .cur {
-    display:inline-block; width:7px; height:12px;
-    background:var(--body); border-radius:1px;
-    animation:blink 1s ease-in-out infinite;
-    vertical-align:middle; margin-left:1px;
-    transition:background 0.6s ease;
-  }
-
   .meters { display:flex; gap:14px; margin-bottom:16px; }
   .m { flex:1; }
   .m-head { display:flex; justify-content:space-between; margin-bottom:4px; }
@@ -531,7 +516,7 @@
   var $ = function(id) { return document.getElementById(id); };
   var island = $('island'), statusDot = $('statusDot'), compactText = $('compactText');
   var cpuCompact = $('cpuCompact'), memCompact = $('memCompact');
-  var expStatus = $('expStatus'), terminal = $('terminal');
+  var expStatus = $('expStatus');
   var cpuBar = $('cpuBar'), memBar = $('memBar'), cpuVal = $('cpuVal'), memVal = $('memVal');
   var collapseBtn = $('collapseBtn'), taskItems = $('taskItems');
   var sessionList = $('sessionList');
@@ -805,8 +790,6 @@
       statTools.textContent = total;
     }
   }
-  var lines = [], MAX = 3;
-
   // --- GHOST PIXEL DATA ---
   function ghostBase(hi, body, shadow) {
     return [
@@ -912,6 +895,7 @@
   });
 
   // --- UI STATE ---
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   function setUI(s) {
     uiState = s;
     island.className = s + ' state-' + ghostState;
@@ -924,22 +908,6 @@
   });
   collapseBtn.addEventListener('click', function(e){e.stopPropagation();setUI('compact');});
   document.addEventListener('keydown', function(e){if(e.key==='Escape'&&uiState!=='compact')setUI('compact');});
-
-  // --- TERMINAL ---
-  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-  function push(t,c){lines.push({t:t,c:c||''});if(lines.length>MAX)lines.shift();render();}
-  function render(){
-    terminal.innerHTML=lines.map(function(l){
-      return '<div'+(l.c?' style="color:'+l.c+'"':'')+'>'+esc(l.t)+'</div>';
-    }).join('')+'<span class="cur"></span>';
-  }
-  var tt=null;
-  function type(t,c,cb){
-    if(tt)clearTimeout(tt);var i=0;
-    lines.push({t:'',c:c||''});if(lines.length>MAX)lines.shift();var idx=lines.length-1;
-    function go(){if(i<=t.length){lines[idx].t=t.substring(0,i);render();i++;tt=setTimeout(go,18+Math.random()*25);}else{if(cb)cb();}}
-    go();
-  }
 
   // Toast stacking
   var toastStack = [];
@@ -1033,16 +1001,8 @@
     } else { taskItems.innerHTML='No active tasks'; }
     if (d.stats) updateStats(d.stats);
 
-    if (d.recentPrompts && d.recentPrompts.length>0) {
-      lines = d.recentPrompts.slice(-MAX).map(function(p) {
-        var t = new Date(p.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-        return {t:'['+t+'] '+(p.display?p.display.substring(0,55):'...'),c:'#666'};
-      });
-      render();
-    }
-
-    if (!was && running) { notify('Session started'); push('> Session started'); }
-    else if (was && !running) { notify('Session ended'); push('> Session ended','#666'); }
+    if (!was && running) { notify('Session started'); }
+    else if (was && !running) { notify('Session ended'); }
   });
 
   window.island.onGhostState(function(gs) {
@@ -1161,16 +1121,13 @@
   });
 
   var compactResetTimer = null;
-  var lastDir = '';
 
   function resetCompactLabel() {
     compactText.textContent = 'Idling...';
   }
 
   window.island.onNewPrompt(function(e) {
-    var t = new Date(e.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     var display = e.display?e.display.substring(0,40):'...';
-    type('['+t+'] '+display);
     if (running) {
       compactText.textContent = display;
       clearTimeout(compactResetTimer);
@@ -1192,9 +1149,6 @@
     var h=Math.floor(m/60);if(h<24)return h+'h';
     return Math.floor(h/24)+'d';
   }
-
-  push('Claude Code Island');
-  push('> Watching ~/.claude ...','#666');
 })();
 </script>
 </body>
