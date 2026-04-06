@@ -4,6 +4,7 @@
   "description": "Dynamic Island for Claude Code - Windows desktop widget",
   "main": "main.js",
   "scripts": {
+    "setup": "node setup.js",
     "start": "electron .",
     "dev": "electron . --dev",
     "build": "electron-builder --win"
@@ -19,7 +20,9 @@
       "main.js",
       "preload.js",
       "index.html",
-      "package.json"
+      "package.json",
+      "hooks/",
+      "setup.js"
     ],
     "portable": {
       "artifactName": "ClaudeCodeIsland.exe"
