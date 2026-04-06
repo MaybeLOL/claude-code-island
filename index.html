@@ -106,6 +106,47 @@
     transition:background 0.2s;
   }
   .exp-x:hover { background:rgba(255,255,255,0.12); }
+  .exp-bell {
+    width:28px; height:28px; border-radius:50%;
+    background:rgba(255,255,255,0.06); display:flex;
+    align-items:center; justify-content:center; cursor:pointer;
+    transition:background 0.2s; position:relative;
+  }
+  .exp-bell:hover { background:rgba(255,255,255,0.12); }
+  .bell-badge {
+    position:absolute; top:0; right:0; width:8px; height:8px;
+    border-radius:50%; background:#e08080;
+  }
+  .notif-history {
+    display:none; position:absolute; top:60px; right:20px;
+    width:280px; max-height:300px; z-index:100;
+    background:rgba(22,22,30,0.95); backdrop-filter:blur(30px);
+    border:1px solid rgba(255,255,255,0.08); border-radius:16px;
+    overflow:hidden; flex-direction:column;
+  }
+  .notif-history.open { display:flex; }
+  .notif-history-list { flex:1; overflow-y:auto; padding:8px; }
+  .notif-history-entry {
+    display:flex; align-items:flex-start; gap:8px;
+    padding:6px 8px; font-size:11px; border-radius:8px;
+    border-left:3px solid #555;
+  }
+  .notif-history-entry.type-success { border-left-color:#70e090; }
+  .notif-history-entry.type-info { border-left-color:#6ea8fe; }
+  .notif-history-entry.type-question { border-left-color:#f0c060; }
+  .notif-history-icon { flex-shrink:0; font-size:10px; margin-top:1px; }
+  .notif-history-msg { flex:1; color:#ddd; font-weight:500; }
+  .notif-history-time { font-size:10px; color:#555; flex-shrink:0; }
+  .notif-history-clear {
+    text-align:center; padding:8px; font-size:11px;
+    color:#888; cursor:pointer; border-top:1px solid rgba(255,255,255,0.06);
+    transition:color 0.2s;
+  }
+  .notif-history-clear:hover { color:#fff; }
+  .theme-light .notif-history { background:rgba(240,238,250,0.95); border-color:rgba(0,0,0,0.08); }
+  .theme-light .notif-history-msg { color:#333; }
+  .theme-light .notif-history-clear { color:#666; border-top-color:rgba(0,0,0,0.06); }
+  .theme-light .notif-history-clear:hover { color:#111; }
 
   .label {
     font-size:10px; color:#555; font-weight:600;
@@ -164,6 +205,115 @@
   .t-dot.running { background:var(--body); box-shadow:0 0 6px var(--body); }
   .t-dot.done { background:#70e090; }
   .t-name { font-weight:500; color:#ddd; font-size:11px; }
+
+  /* Tab bar */
+  .tab-bar {
+    display:flex; gap:0; margin-bottom:14px; position:relative;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .tab-btn {
+    flex:1; padding:8px 0; text-align:center;
+    font-size:11px; font-weight:600; text-transform:uppercase;
+    letter-spacing:0.5px; color:#666; cursor:pointer;
+    background:none; border:none; outline:none;
+    transition:color 0.2s ease;
+  }
+  .tab-btn.active { color:#fff; }
+  .tab-btn:hover:not(.active) { color:#999; }
+  .tab-indicator {
+    position:absolute; bottom:-1px; height:2px;
+    background:var(--body); border-radius:1px;
+    transition:left 0.2s ease, width 0.2s ease, background 0.4s ease;
+  }
+  .tab-content { display:none; flex:1; overflow:hidden; flex-direction:column; }
+  .tab-content.active { display:flex; }
+  .tab-content.fade-in { animation:tabFade 0.2s ease; }
+  @keyframes tabFade { from{opacity:0;} to{opacity:1;} }
+  .theme-light .tab-bar { border-bottom-color:rgba(0,0,0,0.08); }
+  .theme-light .tab-btn { color:#999; }
+  .theme-light .tab-btn.active { color:#111; }
+
+  /* Activity tab */
+  .activity-feed {
+    flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:2px;
+    padding:2px 0;
+  }
+  .activity-entry {
+    display:flex; align-items:center; gap:8px;
+    padding:4px 8px; font-size:11px; border-radius:8px;
+  }
+  .activity-entry:hover { background:rgba(255,255,255,0.03); }
+  .activity-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .activity-dot.t-read { background:#6ea8fe; }
+  .activity-dot.t-write { background:#70e090; }
+  .activity-dot.t-bash { background:#f0a050; }
+  .activity-dot.t-agent { background:#b8a0f0; }
+  .activity-dot.t-other { background:#666; }
+  .activity-label { flex:1; color:#ddd; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .activity-time { font-size:10px; color:#555; flex-shrink:0; }
+  .activity-empty { text-align:center; color:#555; padding:40px 0; font-size:12px; }
+  .theme-light .activity-entry:hover { background:rgba(0,0,0,0.03); }
+  .theme-light .activity-label { color:#333; }
+  .theme-light .activity-time { color:#888; }
+
+  /* Settings tab */
+  .settings-list { display:flex; flex-direction:column; gap:12px; overflow-y:auto; flex:1; padding:2px 0; }
+  .setting-row {
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:12px; color:#ddd;
+  }
+  .setting-label { font-weight:500; }
+  .setting-control { display:flex; align-items:center; gap:6px; }
+  .setting-slider {
+    -webkit-appearance:none; width:100px; height:3px;
+    background:rgba(255,255,255,0.1); border-radius:2px; outline:none;
+  }
+  .setting-slider::-webkit-slider-thumb {
+    -webkit-appearance:none; width:14px; height:14px;
+    border-radius:50%; background:var(--body); cursor:pointer;
+  }
+  .setting-val { font-size:10px; color:#888; min-width:30px; text-align:right; }
+  .setting-toggle {
+    width:36px; height:20px; border-radius:10px;
+    background:rgba(255,255,255,0.1); cursor:pointer;
+    position:relative; transition:background 0.2s ease;
+    border:none; outline:none; padding:0;
+  }
+  .setting-toggle.on { background:var(--body); }
+  .setting-toggle::after {
+    content:''; position:absolute; top:2px; left:2px;
+    width:16px; height:16px; border-radius:50%;
+    background:#fff; transition:left 0.2s ease;
+  }
+  .setting-toggle.on::after { left:18px; }
+  .setting-btn {
+    padding:6px 14px; border-radius:10px; font-size:11px;
+    font-weight:600; cursor:pointer; border:none;
+    background:rgba(255,255,255,0.08); color:#ddd;
+    transition:background 0.2s ease;
+  }
+  .setting-btn:hover { background:rgba(255,255,255,0.14); }
+  .setting-radio { display:flex; gap:4px; }
+  .setting-radio-opt {
+    padding:4px 10px; border-radius:8px; font-size:10px;
+    font-weight:600; cursor:pointer; border:1px solid rgba(255,255,255,0.08);
+    background:none; color:#888; transition:all 0.2s ease;
+  }
+  .setting-radio-opt.active { background:var(--body); color:#000; border-color:var(--body); }
+  .theme-light .setting-row { color:#333; }
+  .theme-light .setting-slider { background:rgba(0,0,0,0.1); }
+  .theme-light .setting-btn { background:rgba(0,0,0,0.06); color:#333; }
+  .theme-light .setting-btn:hover { background:rgba(0,0,0,0.1); }
+  .theme-light .setting-toggle { background:rgba(0,0,0,0.1); }
+  .theme-light .setting-radio-opt { border-color:rgba(0,0,0,0.1); color:#666; }
+  .theme-light .setting-radio-opt.active { color:#000; }
+
+  /* Stats row */
+  .stats-row { display:flex; gap:14px; margin-bottom:14px; }
+  .stat-item { flex:1; }
+  .stat-label { font-size:10px; color:#555; font-weight:600; }
+  .stat-val { font-size:13px; color:#fff; font-weight:700; font-variant-numeric:tabular-nums; }
+  .theme-light .stat-val { color:#111; }
 
   /* Question panel */
   .question-panel {
@@ -253,6 +403,13 @@
           <div class="exp-title">Claude Code</div>
           <div class="exp-sub" id="expStatus">Ready</div>
         </div>
+        <div class="exp-bell" id="bellBtn" title="Notifications">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span class="bell-badge" id="bellBadge" style="display:none;"></span>
+        </div>
         <div class="exp-x" id="collapseBtn">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
                stroke="#666" stroke-width="3" stroke-linecap="round">
@@ -262,36 +419,108 @@
         </div>
       </div>
 
+      <!-- Notification history dropdown -->
+      <div class="notif-history" id="notifHistory">
+        <div class="notif-history-list" id="notifHistoryList"></div>
+        <div class="notif-history-clear" id="notifClearAll">Clear all</div>
+      </div>
+
       <div class="question-panel" id="questionPanel">
         <div class="question-text" id="questionText"></div>
         <div id="questionOpts"></div>
       </div>
 
-      <div class="label">Activity</div>
-      <div class="term-box" id="terminal"></div>
+      <!-- Tab bar -->
+      <div class="tab-bar" id="tabBar">
+        <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+        <button class="tab-btn" data-tab="activity">Activity</button>
+        <button class="tab-btn" data-tab="settings">Settings</button>
+        <div class="tab-indicator" id="tabIndicator"></div>
+      </div>
 
-      <div class="meters">
-        <div class="m">
-          <div class="m-head">
-            <span class="m-label">CPU</span>
-            <span class="m-val" id="cpuVal">--%</span>
+      <!-- Dashboard tab -->
+      <div class="tab-content active" id="tabDashboard" data-tab="dashboard">
+        <div class="meters">
+          <div class="m">
+            <div class="m-head">
+              <span class="m-label">CPU</span>
+              <span class="m-val" id="cpuVal">--%</span>
+            </div>
+            <div class="m-track"><div class="m-fill" id="cpuBar"></div></div>
           </div>
-          <div class="m-track"><div class="m-fill" id="cpuBar"></div></div>
+          <div class="m">
+            <div class="m-head">
+              <span class="m-label">Memory</span>
+              <span class="m-val" id="memVal">--%</span>
+            </div>
+            <div class="m-track"><div class="m-fill" id="memBar"></div></div>
+          </div>
         </div>
-        <div class="m">
-          <div class="m-head">
-            <span class="m-label">Memory</span>
-            <span class="m-val" id="memVal">--%</span>
-          </div>
-          <div class="m-track"><div class="m-fill" id="memBar"></div></div>
+
+        <div class="stats-row" id="statsRow">
+          <div class="stat-item"><div class="stat-label">Duration</div><div class="stat-val" id="statDuration">--</div></div>
+          <div class="stat-item"><div class="stat-label">Prompts</div><div class="stat-val" id="statPrompts">0</div></div>
+          <div class="stat-item"><div class="stat-label">Tools</div><div class="stat-val" id="statTools">0</div></div>
+        </div>
+
+        <div class="label">Sessions</div>
+        <div class="sess-list" id="sessionList"></div>
+
+        <div class="label">Tasks</div>
+        <div class="tasks-box" id="taskItems">No active tasks</div>
+      </div>
+
+      <!-- Activity tab -->
+      <div class="tab-content" id="tabActivity" data-tab="activity">
+        <div class="activity-feed" id="activityFeed">
+          <div class="activity-empty">No activity yet</div>
         </div>
       </div>
 
-      <div class="label">Sessions</div>
-      <div class="sess-list" id="sessionList"></div>
-
-      <div class="label">Tasks</div>
-      <div class="tasks-box" id="taskItems">No active tasks</div>
+      <!-- Settings tab -->
+      <div class="tab-content" id="tabSettings" data-tab="settings">
+        <div class="settings-list">
+          <div class="setting-row">
+            <span class="setting-label">Opacity</span>
+            <div class="setting-control">
+              <input type="range" class="setting-slider" id="opacitySlider" min="30" max="100" value="88">
+              <span class="setting-val" id="opacityVal">88%</span>
+            </div>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Polling</span>
+            <div class="setting-control">
+              <div class="setting-radio" id="pollingRadio">
+                <button class="setting-radio-opt active" data-val="1500">Fast</button>
+                <button class="setting-radio-opt" data-val="3000">Normal</button>
+              </div>
+            </div>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Notifications</span>
+            <div class="setting-control">
+              <div class="setting-radio" id="notifRadio">
+                <button class="setting-radio-opt" data-val="inapp">In-app</button>
+                <button class="setting-radio-opt" data-val="native">Native</button>
+                <button class="setting-radio-opt active" data-val="both">Both</button>
+              </div>
+            </div>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Theme</span>
+            <div class="setting-control">
+              <button class="setting-toggle" id="themeToggle" title="Toggle light/dark"></button>
+              <span class="setting-val" id="themeLabel">Dark</span>
+            </div>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Position</span>
+            <div class="setting-control">
+              <button class="setting-btn" id="resetPosBtn">Reset to center</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
