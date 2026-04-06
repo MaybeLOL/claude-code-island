@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="460" viewBox="0 0 400 460">
+  <!-- Panel background -->
+  <rect x="20" y="10" width="360" height="420" rx="28" fill="#161423" fill-opacity="0.95" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+
+  <!-- Header: Ghost + Title + Close -->
+  <g transform="translate(40,30)">
+    <!-- Ghost (working state - peach) -->
+    <g transform="translate(0,0) scale(1.5)">
+      <rect x="4" y="0" width="4" height="2" fill="#f4c0b0"/>
+      <rect x="2" y="2" width="8" height="2" fill="#f4c0b0"/>
+      <rect x="0" y="4" width="12" height="2" fill="#e8a090"/>
+      <rect x="0" y="6" width="12" height="2" fill="#f4c0b0"/>
+      <rect x="0" y="8" width="12" height="2" fill="#e8a090"/>
+      <rect x="0" y="10" width="12" height="2" fill="#d89080"/>
+      <rect x="0" y="12" width="12" height="2" fill="#d89080"/>
+      <rect x="0" y="14" width="4" height="2" fill="#d89080" opacity="0.6"/>
+      <rect x="4" y="14" width="4" height="2" fill="#d89080" opacity="0.5"/>
+      <rect x="8" y="14" width="4" height="2" fill="#d89080" opacity="0.6"/>
+      <!-- Open eyes -->
+      <rect x="2" y="6" width="3" height="3" fill="#5a2020"/>
+      <rect x="7" y="6" width="3" height="3" fill="#5a2020"/>
+      <rect x="3" y="6" width="1" height="1" fill="#fff"/>
+      <rect x="8" y="6" width="1" height="1" fill="#fff"/>
+    </g>
+    <!-- Title -->
+    <text x="55" y="14" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="16" font-weight="700" fill="#ffffff" letter-spacing="-0.4">Claude Code</text>
+    <text x="55" y="32" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12" font-weight="500" fill="#e8a090">1 session running</text>
+    <!-- Close button -->
+    <circle cx="295" cy="14" r="14" fill="rgba(255,255,255,0.06)"/>
+    <line x1="290" y1="9" x2="300" y2="19" stroke="#666" stroke-width="2" stroke-linecap="round"/>
+    <line x1="300" y1="9" x2="290" y2="19" stroke="#666" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Question Panel -->
+  <rect x="40" y="85" width="320" height="165" rx="14" fill="rgba(255,255,255,0.03)"/>
+  <text x="52" y="108" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12" font-weight="600" fill="#ffffff">Which approach do you want?</text>
+
+  <!-- Option 1 -->
+  <rect x="52" y="118" width="296" height="38" rx="10" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="64" y="135" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12" font-weight="600" fill="#ffffff">1. TCP Socket (Recommended)</text>
+  <text x="64" y="149" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" fill="#888888">Most reliable, multi-session support</text>
+
+  <!-- Option 2 -->
+  <rect x="52" y="162" width="296" height="38" rx="10" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="64" y="179" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12" font-weight="600" fill="#ffffff">2. File Polling</text>
+  <text x="64" y="193" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" fill="#888888">Simpler but has race conditions</text>
+
+  <!-- Option 3 -->
+  <rect x="52" y="206" width="296" height="30" rx="10" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="64" y="225" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12" font-weight="600" fill="#ffffff">3. Something else</text>
+
+  <!-- Activity -->
+  <text x="40" y="275" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" font-weight="600" fill="#555555" letter-spacing="0.8" text-transform="uppercase">ACTIVITY</text>
+  <rect x="40" y="282" width="320" height="50" rx="14" fill="rgba(0,0,0,0.3)"/>
+  <text x="54" y="300" font-family="SF Mono,Cascadia Code,Fira Code,monospace" font-size="11" fill="#e8a090">[14:32] Reading main.js...</text>
+  <text x="54" y="318" font-family="SF Mono,Cascadia Code,Fira Code,monospace" font-size="11" fill="#666666">[14:31] Editing index.html</text>
+  <rect x="220" y="310" width="7" height="12" rx="1" fill="#e8a090">
+    <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Meters -->
+  <text x="40" y="352" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" font-weight="600" fill="#555555">CPU</text>
+  <text x="170" y="352" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" font-weight="700" fill="#ffffff" text-anchor="end">24%</text>
+  <rect x="40" y="356" width="130" height="3" rx="2" fill="rgba(255,255,255,0.06)"/>
+  <rect x="40" y="356" width="31" height="3" rx="2" fill="#e8a090"/>
+
+  <text x="210" y="352" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" font-weight="600" fill="#555555">Memory</text>
+  <text x="360" y="352" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" font-weight="700" fill="#ffffff" text-anchor="end">8.2/16G</text>
+  <rect x="210" y="356" width="150" height="3" rx="2" fill="rgba(255,255,255,0.06)"/>
+  <rect x="210" y="356" width="77" height="3" rx="2" fill="#e8a090"/>
+
+  <!-- Sessions -->
+  <text x="40" y="382" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" font-weight="600" fill="#555555" letter-spacing="0.8">SESSIONS</text>
+  <rect x="40" y="388" width="320" height="28" rx="12" fill="rgba(255,255,255,0.03)"/>
+  <circle cx="56" cy="402" r="3" fill="#e8a090">
+    <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <text x="68" y="406" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="11" font-weight="500" fill="#dddddd">claude-code-island</text>
+  <text x="330" y="406" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" fill="#555555" text-anchor="end">12m</text>
+</svg>

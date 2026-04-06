@@ -2,6 +2,14 @@
 
 A Dynamic Island-style floating widget for Windows that monitors Claude Code sessions in real-time. Answer questions directly from the widget without switching to the terminal.
 
+<p align="center">
+  <img src="assets/island-compact.svg" alt="Compact pill view" width="320"/>
+</p>
+
+<p align="center">
+  <img src="assets/island-expanded.svg" alt="Expanded panel with question" width="400"/>
+</p>
+
 ## Features
 
 - Floating pill widget at the top of your screen (always-on-top, transparent)
