@@ -21,7 +21,7 @@
   .theme-light .exp-sub, .theme-light .label, .theme-light .m-label { color:#555; }
   .theme-light .m-val, .theme-light .t-name, .theme-light .sess-path { color:#222; }
   .theme-light .m-track { background:rgba(0,0,0,0.08); }
-  .theme-light .term-box, .theme-light .tasks-box { background:rgba(0,0,0,0.04); }
+  .theme-light .tasks-box { background:rgba(0,0,0,0.04); }
   .theme-light .sess-row { background:rgba(0,0,0,0.03); }
   .theme-light .sess-row:hover { background:rgba(0,0,0,0.06); }
   .theme-light .compact-meta { color:#888; }
@@ -753,6 +753,7 @@
       e.stopPropagation();
       notifHistoryData = [];
       renderNotifHistory();
+      window.island.clearNotificationHistory();
     });
   }
 
@@ -899,7 +900,8 @@
   function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   function setUI(s) {
     uiState = s;
-    island.className = s + ' state-' + ghostState;
+    var theme = (typeof currentSettings !== 'undefined' && currentSettings.theme === 'light') ? ' theme-light' : '';
+    island.className = s + ' state-' + ghostState + theme;
     window.island.resize(s);
   }
   island.addEventListener('click', function(e) {
@@ -944,6 +946,8 @@
   }
 
   function dismissToast(toast) {
+    if (toast._dismissed) return;
+    toast._dismissed = true;
     toast.classList.remove('show');
     setTimeout(function() {
       var idx = toastStack.indexOf(toast);

@@ -37,4 +37,5 @@ contextBridge.exposeInMainWorld('island', {
   // New — Notification history
   onNotificationHistory: (cb) => ipcRenderer.on('notification-history', (_, data) => cb(data)),
   requestNotificationHistory: () => ipcRenderer.send('request-notification-history'),
+  clearNotificationHistory: () => ipcRenderer.send('clear-notification-history'),
 });

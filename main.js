@@ -64,7 +64,7 @@ function saveSettings(data) {
   appSettings = { ...appSettings, ...data };
   try {
     fs.writeFileSync(SETTINGS_FILE, JSON.stringify(appSettings, null, 2));
-  } catch (e) {}
+  } catch (e) { console.error('Failed to save settings:', e.message); }
 }
 
 const COMPACT_WIDTH = 280;
@@ -114,9 +114,13 @@ function startQuestionServer() {
 
 function createWindow() {
   loadSettings();
-  const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize;
-  const startX = appSettings.position ? appSettings.position.x : Math.round((screenWidth - COMPACT_WIDTH) / 2);
-  const startY = appSettings.position ? appSettings.position.y : 8;
+  const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
+  const startX = appSettings.position
+    ? Math.min(Math.max(appSettings.position.x, 0), screenWidth - COMPACT_WIDTH)
+    : Math.round((screenWidth - COMPACT_WIDTH) / 2);
+  const startY = appSettings.position
+    ? Math.min(Math.max(appSettings.position.y, 0), screenHeight - COMPACT_HEIGHT)
+    : 8;
 
   mainWindow = new BrowserWindow({
     width: COMPACT_WIDTH,
@@ -199,8 +203,10 @@ function createWindow() {
 
   // Opacity
   ipcMain.on('set-opacity', (event, value) => {
+    const v = parseFloat(value);
+    if (isNaN(v)) return;
     if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.setOpacity(Math.max(0.3, Math.min(1.0, value)));
+      mainWindow.setOpacity(Math.max(0.3, Math.min(1.0, v)));
     }
   });
 
@@ -226,6 +232,10 @@ function createWindow() {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('notification-history', notificationHistory);
     }
+  });
+
+  ipcMain.on('clear-notification-history', () => {
+    notificationHistory = [];
   });
 
   // Polling intervals
