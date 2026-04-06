@@ -13,6 +13,12 @@ let prevTasks = [];
 let firstPoll = true;
 let currentGhostState = 'idle';
 let successTimer = null;
+let claudeStatusInterval = null;
+
+function restartPolling(interval) {
+  if (claudeStatusInterval) clearInterval(claudeStatusInterval);
+  claudeStatusInterval = setInterval(() => sendClaudeStatus(), interval);
+}
 
 const pendingQuestions = new Map();
 let questionServer = null;
@@ -24,6 +30,36 @@ const TASKS_DIR = path.join(CLAUDE_DIR, 'tasks');
 const HISTORY_FILE = path.join(CLAUDE_DIR, 'history.jsonl');
 const STATUS_FILE = path.join(CLAUDE_DIR, 'island-status.json');
 const STARTUP_LINK = path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup', 'ClaudeCodeIsland.lnk');
+
+const SETTINGS_FILE = path.join(CLAUDE_DIR, 'island-settings.json');
+
+const DEFAULT_SETTINGS = {
+  opacity: 0.88,
+  position: null,
+  pollingInterval: 1500,
+  notifications: 'both',
+  theme: 'dark'
+};
+
+let appSettings = { ...DEFAULT_SETTINGS };
+
+function loadSettings() {
+  try {
+    const raw = fs.readFileSync(SETTINGS_FILE, 'utf-8');
+    const saved = JSON.parse(raw);
+    appSettings = { ...DEFAULT_SETTINGS, ...saved };
+  } catch (e) {
+    appSettings = { ...DEFAULT_SETTINGS };
+  }
+  return appSettings;
+}
+
+function saveSettings(data) {
+  appSettings = { ...appSettings, ...data };
+  try {
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(appSettings, null, 2));
+  } catch (e) {}
+}
 
 const COMPACT_WIDTH = 280;
 const COMPACT_HEIGHT = 48;
@@ -71,13 +107,16 @@ function startQuestionServer() {
 }
 
 function createWindow() {
+  loadSettings();
   const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize;
+  const startX = appSettings.position ? appSettings.position.x : Math.round((screenWidth - COMPACT_WIDTH) / 2);
+  const startY = appSettings.position ? appSettings.position.y : 8;
 
   mainWindow = new BrowserWindow({
     width: COMPACT_WIDTH,
     height: COMPACT_HEIGHT,
-    x: Math.round((screenWidth - COMPACT_WIDTH) / 2),
-    y: 8,
+    x: startX,
+    y: startY,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
@@ -95,6 +134,12 @@ function createWindow() {
   mainWindow.setAlwaysOnTop(true, 'screen-saver');
   mainWindow.setVisibleOnAllWorkspaces(true);
   mainWindow.loadFile('index.html');
+  if (appSettings.opacity !== undefined && appSettings.opacity < 1.0) {
+    mainWindow.setOpacity(appSettings.opacity);
+  }
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.send('settings-loaded', appSettings);
+  });
   mainWindow.setIgnoreMouseEvents(false);
 
   ipcMain.on('resize-island', (event, state) => {
@@ -125,11 +170,47 @@ function createWindow() {
       height: mainWindow.getBounds().height
     });
   });
-  ipcMain.on('drag-end', () => { dragOffset = null; });
+  ipcMain.on('drag-end', () => {
+    dragOffset = null;
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const bounds = mainWindow.getBounds();
+      saveSettings({ position: { x: bounds.x, y: bounds.y } });
+    }
+  });
+
+  // Settings
+  ipcMain.on('save-settings', (event, data) => {
+    saveSettings(data);
+    if (data.pollingInterval !== undefined) {
+      restartPolling(data.pollingInterval);
+    }
+  });
+  ipcMain.on('request-settings', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('settings-loaded', appSettings);
+    }
+  });
+
+  // Opacity
+  ipcMain.on('set-opacity', (event, value) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.setOpacity(Math.max(0.3, Math.min(1.0, value)));
+    }
+  });
+
+  // Position reset
+  ipcMain.on('reset-position', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const { width: sw } = screen.getPrimaryDisplay().workAreaSize;
+      const bounds = mainWindow.getBounds();
+      mainWindow.setBounds({ x: Math.round((sw - bounds.width) / 2), y: 8, width: bounds.width, height: bounds.height }, true);
+      saveSettings({ position: null });
+    }
+  });
 
   // Polling intervals
   setInterval(() => sendSystemInfo(), 2000);
-  setInterval(() => sendClaudeStatus(), 1500);
+  restartPolling(appSettings.pollingInterval);
   sendSystemInfo();
   sendClaudeStatus();
 
@@ -430,10 +511,10 @@ function toggleAutoStart(enable) {
 
 function showToast(message) {
   if (!mainWindow || mainWindow.isDestroyed()) return;
-  // Send to renderer for in-app toast
-  mainWindow.webContents.send('toast', message);
-  // Also show native Windows notification
-  if (Notification.isSupported()) {
+  if (appSettings.notifications !== 'native') {
+    mainWindow.webContents.send('toast', message);
+  }
+  if (appSettings.notifications !== 'inapp' && Notification.isSupported()) {
     new Notification({ title: 'Claude Code Island', body: message, silent: true }).show();
   }
 }
