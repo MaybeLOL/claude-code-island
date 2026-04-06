@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
 const os = require('os');
+const net = require('net');
 
 let mainWindow;
 let tray;
@@ -12,6 +13,10 @@ let prevTasks = [];
 let firstPoll = true;
 let currentGhostState = 'idle';
 let successTimer = null;
+
+const pendingQuestions = new Map();
+let questionServer = null;
+const QUESTION_PORT = 47523;
 
 const CLAUDE_DIR = path.join(os.homedir(), '.claude');
 const SESSIONS_DIR = path.join(CLAUDE_DIR, 'sessions');
@@ -24,6 +29,46 @@ const COMPACT_WIDTH = 280;
 const COMPACT_HEIGHT = 48;
 const EXPANDED_WIDTH = 360;
 const EXPANDED_HEIGHT = 420;
+
+function startQuestionServer() {
+  questionServer = net.createServer((socket) => {
+    let buf = '';
+    socket.on('data', (chunk) => {
+      buf += chunk.toString();
+      const newlineIdx = buf.indexOf('\n');
+      if (newlineIdx === -1) return;
+      const line = buf.substring(0, newlineIdx);
+      buf = buf.substring(newlineIdx + 1);
+      try {
+        const msg = JSON.parse(line);
+        if (msg.session_id && msg.questions) {
+          pendingQuestions.set(msg.session_id, socket);
+          socket.on('close', () => pendingQuestions.delete(msg.session_id));
+          socket.on('error', () => pendingQuestions.delete(msg.session_id));
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('show-question', {
+              session_id: msg.session_id,
+              question: msg.questions[0].question,
+              options: msg.questions[0].options,
+              multiSelect: msg.questions[0].multiSelect || false,
+              allQuestions: msg.questions
+            });
+            const { width: sw } = screen.getPrimaryDisplay().workAreaSize;
+            const bounds = mainWindow.getBounds();
+            const x = Math.min(Math.max(bounds.x, 0), sw - EXPANDED_WIDTH);
+            mainWindow.setBounds({ x, y: bounds.y, width: EXPANDED_WIDTH, height: EXPANDED_HEIGHT }, true);
+          }
+        }
+      } catch (e) {}
+    });
+  });
+  questionServer.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      setTimeout(startQuestionServer, 2000);
+    }
+  });
+  questionServer.listen(QUESTION_PORT, '127.0.0.1');
+}
 
 function createWindow() {
   const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize;
@@ -322,15 +367,7 @@ function watchStatus() {
         const status = JSON.parse(raw);
         mainWindow.webContents.send('tool-status', status);
 
-        // If AskUserQuestion, auto-expand island and show options
-        if (status.needsInput && status.questions && status.questions.length > 0) {
-          mainWindow.webContents.send('show-question', status.questions[0]);
-          // Expand the window to show the question
-          const { width: sw } = screen.getPrimaryDisplay().workAreaSize;
-          const bounds = mainWindow.getBounds();
-          const x = Math.min(Math.max(bounds.x, 0), sw - EXPANDED_WIDTH);
-          mainWindow.setBounds({ x, y: bounds.y, width: EXPANDED_WIDTH, height: EXPANDED_HEIGHT }, true);
-        }
+        // Question display is handled by TCP server, not status file
 
         // Immediately switch to working
         if (currentGhostState !== 'success' && currentGhostState !== 'error') {
@@ -402,8 +439,17 @@ function showToast(message) {
 }
 
 app.whenReady().then(() => {
+  startQuestionServer();
   createWindow();
   createTray();
+});
+
+app.on('before-quit', () => {
+  if (questionServer) questionServer.close();
+  for (const [id, sock] of pendingQuestions) {
+    try { sock.end(); } catch (e) {}
+  }
+  pendingQuestions.clear();
 });
 
 app.on('window-all-closed', () => app.quit());
@@ -418,24 +464,20 @@ ipcMain.on('toggle-click-through', (event, enabled) => {
 // Terminal jump — focus the terminal window running a Claude Code session by PID
 ipcMain.on('jump-to-terminal', (event, pid) => {
   if (!pid) return;
-  const script = path.join(__dirname, 'focus-window.ps1');
-  exec(`powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${script}" -Pid ${pid}`, () => {});
+  const psPath = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
+  const cmd = `$c=${pid};for($d=0;$d -lt 5;$d++){$p=Get-Process -Id $c -EA Stop;if($p.MainWindowHandle -ne [IntPtr]::Zero){Add-Type '[DllImport("user32.dll")]public static extern bool SetForegroundWindow(IntPtr h);[DllImport("user32.dll")]public static extern bool ShowWindow(IntPtr h,int c);' -Name W -Namespace W;[W.W]::ShowWindow($p.MainWindowHandle,9);[W.W]::SetForegroundWindow($p.MainWindowHandle);break}$w=Get-CimInstance Win32_Process -Filter "ProcessId=$c";if(-not $w.ParentProcessId){break}$c=$w.ParentProcessId}`;
+  exec(`"${psPath}" -NoProfile -ExecutionPolicy Bypass -Command "${cmd}"`, () => {});
 });
 
-// Answer question — focus terminal and send keystroke to select option
-ipcMain.on('answer-question', (event, idx) => {
-  try {
-    const answerFile = path.join(CLAUDE_DIR, 'island-answer.json');
-    fs.writeFileSync(answerFile, JSON.stringify({ index: idx, timestamp: Date.now() }));
-  } catch (e) {}
-
-  const sessions = readSessions();
-  checkAliveSessions(sessions, (alive) => {
-    if (alive.length > 0) {
-      const pid = alive[0].pid;
-      const keyNum = idx + 1;
-      const script = path.join(__dirname, 'send-key.ps1');
-      exec(`powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${script}" -Pid ${pid} -KeyNum ${keyNum}`, () => {});
-    }
-  });
+// Answer question — send answer back via TCP socket to the hook
+ipcMain.on('answer-question', (event, answer) => {
+  const sessionId = answer.session_id;
+  const socket = sessionId ? pendingQuestions.get(sessionId) : null;
+  if (socket && !socket.destroyed) {
+    try {
+      socket.write(JSON.stringify(answer) + '\n');
+      socket.end();
+    } catch (e) {}
+    pendingQuestions.delete(sessionId);
+  }
 });

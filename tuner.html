@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ghost Position Tuner</title>
+<style>
+  body { background:#111; color:#fff; font-family:system-ui; padding:20px; }
+  .preview { display:flex; flex-direction:column; gap:30px; }
+
+  /* Compact pill preview */
+  .pill-preview {
+    background:rgba(22,20,35,0.95); border-radius:24px;
+    width:280px; height:48px; display:flex; align-items:center;
+    gap:10px; padding:0 14px 0 8px; border:1px solid rgba(255,255,255,0.1);
+  }
+  .ghost-wrap-compact { flex-shrink:0; position:relative; }
+  .ghost-wrap-compact svg { display:block; image-rendering:pixelated; position:relative; }
+  .dot { width:6px; height:6px; border-radius:50%; background:#b8aedd; flex-shrink:0; }
+  .label { font-size:13px; font-weight:600; flex:1; }
+  .meta { font-size:11px; color:#666; }
+
+  /* Expanded header preview */
+  .exp-preview {
+    background:rgba(22,20,35,0.95); border-radius:28px;
+    width:360px; padding:20px; border:1px solid rgba(255,255,255,0.1);
+  }
+  .exp-top { display:flex; align-items:center; gap:14px; }
+  .ghost-wrap-exp { flex-shrink:0; position:relative; }
+  .ghost-wrap-exp svg { display:block; image-rendering:pixelated; position:relative; }
+  .exp-title { font-size:16px; font-weight:700; }
+  .exp-sub { font-size:12px; color:#b8aedd; margin-top:2px; }
+
+  /* Controls */
+  .controls { margin-top:30px; display:flex; flex-direction:column; gap:12px; }
+  .control { display:flex; align-items:center; gap:12px; }
+  .control label { width:180px; font-size:13px; }
+  .control input[type=range] { width:200px; }
+  .control span { font-size:13px; color:#b8aedd; width:50px; }
+</style>
+</head>
+<body>
+<h2>Ghost Position Tuner</h2>
+<p style="color:#888;font-size:13px;">Drag sliders to adjust ghost position. Values will be shown for copy-paste into CSS.</p>
+
+<div class="preview">
+  <div>
+    <p style="color:#888;font-size:12px;margin-bottom:8px;">COMPACT PILL</p>
+    <div class="pill-preview">
+      <div class="ghost-wrap-compact" id="wrapCompact">
+        <svg id="ghostCompact" viewBox="0 0 32 32" width="34" height="34"></svg>
+      </div>
+      <div class="dot"></div>
+      <div class="label">Claude Code Ready</div>
+      <div class="meta">12% 8.2G</div>
+    </div>
+  </div>
+
+  <div>
+    <p style="color:#888;font-size:12px;margin-bottom:8px;">EXPANDED HEADER</p>
+    <div class="exp-preview">
+      <div class="exp-top">
+        <div class="ghost-wrap-exp" id="wrapExp">
+          <svg id="ghostExp" viewBox="0 0 32 32" width="48" height="48"></svg>
+        </div>
+        <div>
+          <div class="exp-title">Claude Code</div>
+          <div class="exp-sub">1 session running</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <h3>Compact Ghost</h3>
+  <div class="control">
+    <label>SVG Width</label>
+    <input type="range" id="cw" min="16" max="48" value="34">
+    <span id="cwV">34</span>
+  </div>
+  <div class="control">
+    <label>SVG Height</label>
+    <input type="range" id="ch" min="16" max="48" value="34">
+    <span id="chV">34</span>
+  </div>
+  <div class="control">
+    <label>Margin Top</label>
+    <input type="range" id="cmt" min="-30" max="30" value="0">
+    <span id="cmtV">0</span>
+  </div>
+  <div class="control">
+    <label>Margin Left</label>
+    <input type="range" id="cml" min="-30" max="30" value="0">
+    <span id="cmlV">0</span>
+  </div>
+
+  <h3 style="margin-top:16px;">Expanded Ghost</h3>
+  <div class="control">
+    <label>SVG Width</label>
+    <input type="range" id="ew" min="24" max="64" value="48">
+    <span id="ewV">48</span>
+  </div>
+  <div class="control">
+    <label>SVG Height</label>
+    <input type="range" id="eh" min="24" max="64" value="48">
+    <span id="ehV">48</span>
+  </div>
+  <div class="control">
+    <label>Margin Top</label>
+    <input type="range" id="emt" min="-30" max="30" value="0">
+    <span id="emtV">0</span>
+  </div>
+  <div class="control">
+    <label>Margin Left</label>
+    <input type="range" id="eml" min="-30" max="30" value="0">
+    <span id="emlV">0</span>
+  </div>
+
+  <div id="output" style="margin-top:20px;padding:12px;background:#222;border-radius:8px;font-family:monospace;font-size:12px;color:#b8aedd;"></div>
+</div>
+
+<script>
+// Ghost renderer
+var colors = {hi:'#d0c8f0',body:'#b8aedd',shadow:'#6858a0',face:'#6858a0'};
+function ghostBase(hi,body,shadow){return[
+  {x:14,y:3,w:4,h:2,c:hi},{x:12,y:5,w:8,h:2,c:hi},
+  {x:10,y:7,w:12,h:2,c:body},{x:10,y:9,w:12,h:2,c:hi},
+  {x:10,y:11,w:12,h:2,c:body},{x:10,y:13,w:12,h:2,c:shadow},{x:10,y:15,w:12,h:2,c:shadow},
+  {x:10,y:17,w:4,h:2,c:shadow,o:0.6},{x:14,y:17,w:4,h:2,c:shadow,o:0.5},{x:18,y:17,w:4,h:2,c:shadow,o:0.6},
+  {x:11,y:19,w:3,h:2,c:shadow,o:0.3},{x:15,y:19,w:2,h:1,c:shadow,o:0.2},{x:18,y:19,w:3,h:2,c:shadow,o:0.3},
+];}
+var face=[{x:12,y:10,w:3,h:1,c:colors.face},{x:17,y:10,w:3,h:1,c:colors.face},{x:14,y:13,w:4,h:1,c:colors.face,o:0.5}];
+function render(el){
+  var rects=ghostBase(colors.hi,colors.body,colors.shadow);
+  var svg='';
+  rects.concat(face).forEach(function(r){
+    svg+='<rect x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" fill="'+r.c+'"';
+    if(r.o)svg+=' opacity="'+r.o+'"';
+    svg+='/>';
+  });
+  el.innerHTML=svg;
+}
+render(document.getElementById('ghostCompact'));
+render(document.getElementById('ghostExp'));
+
+// Sliders
+var ids=['cw','ch','cmt','cml','ew','eh','emt','eml'];
+ids.forEach(function(id){
+  var el=document.getElementById(id);
+  el.addEventListener('input',update);
+});
+function update(){
+  var cw=+document.getElementById('cw').value;
+  var ch=+document.getElementById('ch').value;
+  var cmt=+document.getElementById('cmt').value;
+  var cml=+document.getElementById('cml').value;
+  var ew=+document.getElementById('ew').value;
+  var eh=+document.getElementById('eh').value;
+  var emt=+document.getElementById('emt').value;
+  var eml=+document.getElementById('eml').value;
+
+  document.getElementById('cwV').textContent=cw;
+  document.getElementById('chV').textContent=ch;
+  document.getElementById('cmtV').textContent=cmt;
+  document.getElementById('cmlV').textContent=cml;
+  document.getElementById('ewV').textContent=ew;
+  document.getElementById('ehV').textContent=eh;
+  document.getElementById('emtV').textContent=emt;
+  document.getElementById('emlV').textContent=eml;
+
+  var gc=document.getElementById('ghostCompact');
+  gc.setAttribute('width',cw);
+  gc.setAttribute('height',ch);
+  gc.style.top=cmt+'px';
+  gc.style.left=cml+'px';
+
+  var ge=document.getElementById('ghostExp');
+  ge.setAttribute('width',ew);
+  ge.setAttribute('height',eh);
+  ge.style.top=emt+'px';
+  ge.style.left=eml+'px';
+
+  document.getElementById('output').innerHTML=
+    'Compact: width:'+cw+'px; height:'+ch+'px; top:'+cmt+'px; left:'+cml+'px;<br>'+
+    'Expanded: width:'+ew+'px; height:'+eh+'px; top:'+emt+'px; left:'+eml+'px;';
+}
+update();
+</script>
+</body>
+</html>

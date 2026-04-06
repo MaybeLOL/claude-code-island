@@ -1,0 +1,33 @@
+{
+  "name": "claude-code-island",
+  "version": "1.0.0",
+  "description": "Dynamic Island for Claude Code - Windows desktop widget",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.claude.code-island",
+    "productName": "Claude Code Island",
+    "win": {
+      "target": "portable",
+      "icon": null
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "package.json"
+    ],
+    "portable": {
+      "artifactName": "ClaudeCodeIsland.exe"
+    }
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  }
+}
