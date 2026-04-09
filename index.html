@@ -17,18 +17,22 @@
 
   /* Light theme overrides */
   .theme-light { --bg-tint:rgba(245,243,250,0.78); }
+  .theme-light .pill {
+    border-color:rgba(0,0,0,0.08);
+    box-shadow:0 8px 32px rgba(0,0,0,0.12), inset 0 0.5px 0 rgba(255,255,255,0.5);
+  }
   .theme-light .compact-label, .theme-light .exp-title { color:#111; }
-  .theme-light .exp-sub, .theme-light .label, .theme-light .m-label { color:#555; }
+  .theme-light .exp-sub, .theme-light .label, .theme-light .m-label { color:#666; }
   .theme-light .m-val, .theme-light .t-name, .theme-light .sess-path { color:#222; }
-  .theme-light .m-track { background:rgba(0,0,0,0.08); }
-  .theme-light .tasks-box { background:rgba(0,0,0,0.04); }
+  .theme-light .m-track { background:rgba(0,0,0,0.06); }
+  .theme-light .tasks-box { background:rgba(0,0,0,0.03); }
   .theme-light .sess-row { background:rgba(0,0,0,0.03); }
-  .theme-light .sess-row:hover { background:rgba(0,0,0,0.06); }
-  .theme-light .compact-meta { color:#888; }
-  .theme-light .notif { background:rgba(240,238,250,0.95); color:#111; }
-  .theme-light .question-panel { background:rgba(0,0,0,0.04); }
-  .theme-light .question-opt { background:rgba(0,0,0,0.04); border-color:rgba(0,0,0,0.1); }
-  .theme-light .question-opt:hover { background:rgba(0,0,0,0.08); }
+  .theme-light .sess-row:hover { background:rgba(0,0,0,0.05); }
+  .theme-light .compact-meta { color:#999; }
+  .theme-light .notif { background:rgba(245,243,250,0.95); color:#111; box-shadow:0 8px 24px rgba(0,0,0,0.1); }
+  .theme-light .question-panel { background:rgba(0,0,0,0.03); }
+  .theme-light .question-opt { background:rgba(0,0,0,0.03); border-color:rgba(0,0,0,0.06); }
+  .theme-light .question-opt:hover { background:rgba(0,0,0,0.06); }
   .theme-light .question-opt-label { color:#111; }
   .theme-light .question-opt-desc { color:#666; }
 
@@ -143,7 +147,7 @@
     transition:color 0.2s;
   }
   .notif-history-clear:hover { color:#fff; }
-  .theme-light .notif-history { background:rgba(240,238,250,0.95); border-color:rgba(0,0,0,0.08); }
+  .theme-light .notif-history { background:rgba(245,243,250,0.95); border-color:rgba(0,0,0,0.06); }
   .theme-light .notif-history-msg { color:#333; }
   .theme-light .notif-history-clear { color:#666; border-top-color:rgba(0,0,0,0.06); }
   .theme-light .notif-history-clear:hover { color:#111; }
@@ -216,6 +220,7 @@
   .theme-light .tab-bar { border-bottom-color:transparent; }
   .theme-light .tab-btn { color:#999; }
   .theme-light .tab-btn.active { color:#111; }
+  .theme-light .tab-indicator { background:rgba(0,0,0,0.06); }
 
   /* Activity tab */
   .activity-feed {
@@ -285,11 +290,11 @@
   }
   .setting-radio-opt.active { background:var(--body); color:#000; border-color:var(--body); }
   .theme-light .setting-row { color:#333; }
-  .theme-light .setting-slider { background:rgba(0,0,0,0.1); }
-  .theme-light .setting-btn { background:rgba(0,0,0,0.06); color:#333; }
-  .theme-light .setting-btn:hover { background:rgba(0,0,0,0.1); }
-  .theme-light .setting-toggle { background:rgba(0,0,0,0.1); }
-  .theme-light .setting-radio-opt { border-color:rgba(0,0,0,0.1); color:#666; }
+  .theme-light .setting-slider { background:rgba(0,0,0,0.08); }
+  .theme-light .setting-btn { background:rgba(0,0,0,0.05); color:#333; }
+  .theme-light .setting-btn:hover { background:rgba(0,0,0,0.08); }
+  .theme-light .setting-toggle { background:rgba(0,0,0,0.08); }
+  .theme-light .setting-radio-opt { border-color:rgba(0,0,0,0.08); color:#666; }
   .theme-light .setting-radio-opt.active { color:#000; }
 
   /* Stats row */
