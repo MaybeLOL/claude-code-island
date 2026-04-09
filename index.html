@@ -320,6 +320,38 @@
   .question-opt:active { transform:scale(0.97); }
   .question-opt-label { font-size:11.5px; font-weight:600; color:#fff; }
   .question-opt-desc { font-size:9.5px; color:#888; margin-top:2px; }
+  .question-progress {
+    font-size:9px; color:#888; font-weight:600; text-transform:uppercase;
+    letter-spacing:0.5px; margin-bottom:4px;
+  }
+  .question-free-wrap {
+    display:flex; gap:6px; margin-top:4px;
+  }
+  .question-free-input {
+    flex:1; padding:6px 10px; border-radius:10px; font-size:11.5px;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+    color:#fff; outline:none; font-family:inherit;
+  }
+  .question-free-input:focus { border-color:var(--body); }
+  .question-free-input::placeholder { color:#666; }
+  .question-free-send {
+    padding:6px 12px; border-radius:10px; font-size:11px; font-weight:600;
+    background:var(--body); color:#000; border:none; cursor:pointer;
+    transition:opacity 0.2s;
+  }
+  .question-free-send:hover { opacity:0.85; }
+  .question-timeout-bar {
+    height:2px; background:rgba(255,255,255,0.06); border-radius:1px;
+    margin-top:6px; overflow:hidden;
+  }
+  .question-timeout-fill {
+    height:100%; width:0%; border-radius:1px; background:var(--body);
+    transition:width 1s linear, background 0.3s ease;
+  }
+  .theme-light .question-free-input {
+    background:rgba(0,0,0,0.04); border-color:rgba(0,0,0,0.08); color:#111;
+  }
+  .theme-light .question-free-input::placeholder { color:#999; }
 
   /* Notification toast */
   .notif {
@@ -407,8 +439,10 @@
       </div>
 
       <div class="question-panel" id="questionPanel">
+        <div class="question-progress" id="questionProgress" style="display:none;"></div>
         <div class="question-text" id="questionText"></div>
         <div id="questionOpts"></div>
+        <div class="question-timeout-bar" id="questionTimeoutBar"><div class="question-timeout-fill" id="questionTimeoutFill"></div></div>
       </div>
 
       <!-- Tab bar -->
@@ -1063,15 +1097,41 @@
 
   // Question panel
   var qPanel = $('questionPanel'), qText = $('questionText'), qOpts = $('questionOpts');
-  var currentQuestion = null;
   var currentSessionId = null;
   var multiSelected = [];
+  var allQuestions = [];
+  var currentQuestionIndex = 0;
+  var collectedAnswers = {};
+  var collectedCustomText = {};
+  var questionStartTime = null;
+  var timeoutInterval = null;
 
   function showQuestion(q) {
-    currentQuestion = q;
+    allQuestions = q.allQuestions || [q];
+    currentQuestionIndex = 0;
+    collectedAnswers = {};
+    collectedCustomText = {};
     currentSessionId = q.session_id || null;
-    multiSelected = [];
     answerPending = false;
+    questionPending = true;
+    pillPriority = 1;
+    questionStartTime = Date.now();
+    renderCurrentQuestion();
+    startTimeoutBar();
+    qPanel.classList.add('active');
+    if (uiState === 'compact') setUI('expanded');
+  }
+
+  function renderCurrentQuestion() {
+    var q = allQuestions[currentQuestionIndex];
+    var progress = $('questionProgress');
+    if (allQuestions.length > 1) {
+      progress.textContent = 'Question ' + (currentQuestionIndex + 1) + ' of ' + allQuestions.length;
+      progress.style.display = 'block';
+    } else {
+      progress.style.display = 'none';
+    }
+    multiSelected = [];
     qText.textContent = q.question;
 
     if (q.multiSelect) {
@@ -1088,18 +1148,24 @@
           '<div class="question-opt-label">'+(i+1)+'. '+esc(o.label)+'</div>' +
           (o.description ? '<div class="question-opt-desc">'+esc(o.description)+'</div>' : '') +
           '</div>';
-      }).join('');
+      }).join('') +
+      '<div class="question-opt" onclick="window._showFreeText()">' +
+        '<div class="question-opt-label" style="color:#888;">Other...</div></div>';
     }
-    qPanel.classList.add('active');
-    if (uiState === 'compact') setUI('expanded');
   }
 
   function hideQuestion() {
     qPanel.classList.remove('active');
     qOpts.innerHTML = '';
-    currentQuestion = null;
+    allQuestions = [];
+    currentQuestionIndex = 0;
     currentSessionId = null;
     multiSelected = [];
+    collectedAnswers = {};
+    collectedCustomText = {};
+    stopTimeoutBar();
+    var fill = $('questionTimeoutFill');
+    if (fill) fill.style.width = '0%';
   }
 
   var answerPending = false;
@@ -1114,22 +1180,108 @@
     if (opt) opt.style.background = pos === -1 ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)';
   };
 
+  window._showFreeText = function() {
+    if (answerPending) return;
+    qOpts.innerHTML = '<div class="question-free-wrap">' +
+      '<input class="question-free-input" id="freeTextInput" placeholder="Type your answer..." autofocus />' +
+      '<button class="question-free-send" onclick="window._submitFreeText()">Send</button>' +
+      '</div>';
+    var inp = $('freeTextInput');
+    if (inp) {
+      inp.focus();
+      inp.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') window._submitFreeText();
+      });
+    }
+  };
+
+  window._submitFreeText = function() {
+    if (answerPending) return;
+    var inp = $('freeTextInput');
+    var text = inp ? inp.value.trim() : '';
+    if (!text) return;
+    collectedCustomText[currentQuestionIndex] = text;
+    collectedAnswers[currentQuestionIndex] = 0;
+    advanceOrSubmit();
+  };
+
+  function advanceOrSubmit() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < allQuestions.length) {
+      renderCurrentQuestion();
+      return;
+    }
+    answerPending = true;
+    qText.textContent = 'Sending answer...';
+    qOpts.innerHTML = '';
+    stopTimeoutBar();
+
+    var response = { session_id: currentSessionId, answers: collectedAnswers };
+    if (Object.keys(collectedCustomText).length > 0) {
+      response.customText = collectedCustomText;
+    }
+    window.island.answerQuestion(response);
+
+    var labels = [];
+    for (var k in collectedAnswers) {
+      if (collectedCustomText[k]) {
+        labels.push('"' + collectedCustomText[k].substring(0, 20) + '"');
+      } else {
+        var qi = parseInt(k);
+        var ai = collectedAnswers[k];
+        var q = allQuestions[qi];
+        if (q && q.options[ai]) labels.push(q.options[ai].label);
+      }
+    }
+    notify('Answered: ' + labels.join(', '));
+
+    setTimeout(function() { qText.textContent = 'Answer sent \u2713'; }, 800);
+    setTimeout(function() {
+      hideQuestion();
+      answerPending = false;
+      questionPending = false;
+      clearPillPriority(1);
+    }, 2000);
+  }
+
+  function startTimeoutBar() {
+    var fill = $('questionTimeoutFill');
+    if (!fill) return;
+    fill.style.width = '0%';
+    fill.style.background = 'var(--body)';
+    clearInterval(timeoutInterval);
+    questionStartTime = Date.now();
+    timeoutInterval = setInterval(function() {
+      var elapsed = (Date.now() - questionStartTime) / 1000;
+      var pct = Math.min((elapsed / 120) * 100, 100);
+      fill.style.width = pct + '%';
+      if (elapsed >= 110) fill.style.background = '#d08080';
+      else if (elapsed >= 100) fill.style.background = '#e0a878';
+      if (elapsed >= 120) {
+        stopTimeoutBar();
+        qText.textContent = 'Timed out';
+        setTimeout(function() {
+          hideQuestion();
+          questionPending = false;
+          clearPillPriority(1);
+        }, 1500);
+      }
+    }, 1000);
+  }
+
+  function stopTimeoutBar() {
+    clearInterval(timeoutInterval);
+    timeoutInterval = null;
+  }
+
   window._submitMulti = function() {
     if (answerPending || multiSelected.length === 0) return;
-    answerPending = true;
-    var labels = multiSelected.map(function(i) {
-      return currentQuestion.options[i] ? currentQuestion.options[i].label : '';
-    });
-    qText.textContent = 'Sending answer...';
-    notify('Answered: ' + labels.join(', '));
-    window.island.answerQuestion({session_id: currentSessionId, answers: {0: multiSelected}});
-    setTimeout(function() { qText.textContent = 'Answer sent!'; }, 800);
-    setTimeout(function() { hideQuestion(); answerPending = false; }, 2000);
+    collectedAnswers[currentQuestionIndex] = multiSelected.slice();
+    setTimeout(function() { advanceOrSubmit(); }, 400);
   };
 
   window._pickOption = function(idx) {
     if (answerPending) return;
-    answerPending = true;
     var opts = qPanel.querySelectorAll('.question-opt');
     for (var i = 0; i < opts.length; i++) {
       if (i === idx) {
@@ -1143,12 +1295,8 @@
         opts[i].style.pointerEvents = 'none';
       }
     }
-    var label = opts[idx] ? opts[idx].querySelector('.question-opt-label').textContent : '';
-    qText.textContent = 'Sending answer...';
-    notify('Answered: ' + label);
-    window.island.answerQuestion({session_id: currentSessionId, index: idx});
-    setTimeout(function() { qText.textContent = 'Answer sent!'; }, 800);
-    setTimeout(function() { hideQuestion(); answerPending = false; }, 2000);
+    collectedAnswers[currentQuestionIndex] = idx;
+    setTimeout(function() { advanceOrSubmit(); }, 400);
   };
 
   window.island.onShowQuestion(function(q) {
