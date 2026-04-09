@@ -66,7 +66,7 @@
   }
   .ghost-mini { width:28px; height:28px; flex-shrink:0; display:block; position:relative; top:3px; left:2px; }
   .ghost-big { width:40px; height:40px; flex-shrink:0; display:block; position:relative; top:2px; left:-3px; }
-  .ghost-notif { width:24px; height:24px; display:block; }
+  .ghost-notif { width:20px; height:20px; display:block; }
   .ghost-wrap { width:28px; height:28px; flex-shrink:0; display:block; line-height:0; transition:opacity 0.15s ease; }
   .exp-top .ghost-wrap { width:40px; height:40px; }
   .status-dot {
@@ -94,7 +94,7 @@
   #island.expanded .compact-view { display:none; }
 
   .exp-top { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
-  .ghost-big { width:40px; height:40px; flex-shrink:0; }  .exp-info { flex:1; }
+  .exp-info { flex:1; }
   .exp-title { font-size:15px; font-weight:600; letter-spacing:-0.3px; }
   .exp-sub { font-size:11.5px; color:var(--body); font-weight:400; margin-top:2px; transition:color 0.4s ease; }
   .exp-x {
@@ -210,8 +210,6 @@
   .tab-content { display:none; flex:1; overflow:hidden; flex-direction:column; }
   .tab-content.active { display:flex; }
   .tab-content.fade-in { animation:tabFade 0.2s ease; }
-  @keyframes tabFade { from{opacity:0;} to{opacity:1;} }
-  .theme-light .tab-bar { border-bottom-color:transparent; }
   .theme-light .tab-btn { color:#999; }
   .theme-light .tab-btn.active { color:#111; }
   .theme-light .tab-indicator { background:rgba(0,0,0,0.06); }
@@ -337,7 +335,6 @@
     opacity:0; top:-50px; pointer-events:none;
   }
   .notif.show { opacity:1; pointer-events:auto; }
-  .ghost-notif { width:20px; height:20px; }
 
   ::-webkit-scrollbar { width:4px; }
   ::-webkit-scrollbar-track { background:transparent; }
