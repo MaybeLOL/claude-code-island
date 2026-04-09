@@ -42,7 +42,7 @@ const SETTINGS_FILE = path.join(CLAUDE_DIR, 'island-settings.json');
 const DEFAULT_SETTINGS = {
   opacity: 0.88,
   position: null,
-  pollingInterval: 1500,
+  pollingInterval: 1000,
   notifications: 'both',
   theme: 'dark'
 };
@@ -399,19 +399,26 @@ function readSessions() {
 
 function checkAliveSessions(sessions, callback) {
   if (sessions.length === 0) return callback([]);
-  const pids = sessions.map(s => s.pid);
-  // Use tasklist to check which PIDs are alive
-  exec(`tasklist /FO CSV /NH`, (err, stdout) => {
-    const alivePids = new Set();
-    if (stdout) {
-      for (const line of stdout.split('\n')) {
-        const match = line.match(/"[^"]*","(\d+)"/);
-        if (match) alivePids.add(parseInt(match[1]));
-      }
+  const alive = sessions.filter(s => {
+    try {
+      process.kill(s.pid, 0);
+      return true;
+    } catch (e) {
+      // PID not found — clean up stale session file
+      try {
+        const sessionFile = path.join(SESSIONS_DIR, s.sessionId + '.json');
+        if (fs.existsSync(sessionFile)) {
+          const raw = fs.readFileSync(sessionFile, 'utf-8');
+          const data = JSON.parse(raw);
+          if (data.pid === s.pid) {
+            fs.unlinkSync(sessionFile);
+          }
+        }
+      } catch (cleanupErr) {}
+      return false;
     }
-    const alive = sessions.filter(s => alivePids.has(s.pid));
-    callback(alive);
   });
+  callback(alive);
 }
 
 function readTasks(sessions) {
@@ -476,10 +483,13 @@ function watchHistory() {
 }
 
 function watchSessions() {
+  let debounceTimer = null;
   try {
-    fs.watch(SESSIONS_DIR, () => {
-      // Session file added or removed — immediately re-poll
-      sendClaudeStatus();
+    fs.watch(SESSIONS_DIR, (eventType, filename) => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        sendClaudeStatus();
+      }, 200);
     });
   } catch (e) {}
 }
