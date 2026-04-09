@@ -349,6 +349,9 @@
   @keyframes qpulse { 0%,100%{border-color:rgba(255,255,255,0.06);} 50%{border-color:rgba(255,255,255,0.15);} }
   @keyframes tabFade { from{opacity:0;} to{opacity:1;} }
 
+  .pill-pulse { animation:pillPulse 1.5s ease-in-out infinite; }
+  @keyframes pillPulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+
   .state-idle .ghost-wrap { animation:bob 3s ease-in-out infinite; }
   .state-working .ghost-wrap { animation:bobFast 1.5s ease-in-out infinite; }
   .state-success .ghost-wrap { animation:ghostPulse 0.4s ease-out; }
@@ -517,6 +520,26 @@
   var uiState = 'compact', ghostState = 'idle', running = false;
   var dragging = false, dragT = 0;
   var currentTab = 'dashboard';
+
+  // Pill priority: 1=question, 2=tool, 3=task, 4=sessions, 5=idle
+  var pillPriority = 5;
+  var questionPending = false;
+
+  function setPillText(text, priority) {
+    if (priority <= pillPriority) {
+      pillPriority = priority;
+      compactText.textContent = text;
+      compactText.classList.toggle('pill-pulse', priority === 1);
+    }
+  }
+
+  function clearPillPriority(priority) {
+    if (pillPriority === priority) {
+      pillPriority = 5;
+      compactText.classList.remove('pill-pulse');
+      resetCompactLabel();
+    }
+  }
 
   // Tab switching
   var tabBtns = document.querySelectorAll('.tab-btn');
@@ -951,7 +974,17 @@
   // --- IPC HANDLERS ---
   window.island.onSystemInfo(function(d) {
     cpuCompact.textContent = d.cpu+'%';
-    memCompact.textContent = d.memUsed+'G';
+    if (running && sessionStats.startTime) {
+      var elapsed = Math.floor((Date.now() - sessionStats.startTime) / 1000);
+      var uptimeStr;
+      if (elapsed < 60) uptimeStr = '0m';
+      else if (elapsed < 3600) uptimeStr = Math.floor(elapsed / 60) + 'm';
+      else if (elapsed < 86400) uptimeStr = Math.floor(elapsed / 3600) + 'h ' + Math.floor((elapsed % 3600) / 60) + 'm';
+      else uptimeStr = Math.floor(elapsed / 86400) + 'd';
+      memCompact.textContent = uptimeStr;
+    } else {
+      memCompact.textContent = d.memUsed+'G';
+    }
     cpuBar.style.width = d.cpu+'%';
     memBar.style.width = d.memPercent+'%';
     cpuVal.textContent = d.cpu+'%';
@@ -993,6 +1026,15 @@
 
     if (!was && running) { notify('Session started'); }
     else if (was && !running) { notify('Session ended'); }
+
+    // Update compact pill idle text based on session count
+    if (running && pillPriority >= 4) {
+      var sc = d.sessions ? d.sessions.length : 0;
+      setPillText(sc + ' session' + (sc > 1 ? 's' : '') + ' active', 4);
+    }
+    if (!running && pillPriority >= 5) {
+      setPillText('Idling...', 5);
+    }
   });
 
   window.island.onGhostState(function(gs) {
@@ -1005,12 +1047,15 @@
 
   window.island.onToolStatus(function(s) {
     if (s.label) {
-      compactText.textContent = s.label;
+      if (!questionPending) {
+        setPillText(s.label, 2);
+      }
       if (s.needsInput) {
-        notify('Needs your input');
+        questionPending = true;
+        var qLabel = s.detail ? '? ' + s.detail : '? Needs input';
+        setPillText(qLabel, 1);
       }
     }
-    // Hide question panel when a non-question tool fires, but not while answer is pending
     if (!s.needsInput && !answerPending) {
       hideQuestion();
     }
@@ -1113,7 +1158,15 @@
   var compactResetTimer = null;
 
   function resetCompactLabel() {
-    compactText.textContent = 'Idling...';
+    if (pillPriority >= 4) {
+      if (running) {
+        pillPriority = 5;
+      } else {
+        pillPriority = 5;
+        compactText.textContent = 'Idling...';
+        compactText.classList.remove('pill-pulse');
+      }
+    }
   }
 
   window.island.onNewPrompt(function(e) {
@@ -1127,10 +1180,12 @@
 
   window.island.onToast(function(msg) { notify(msg); });
   window.island.onTaskStarted(function(msg) {
-    notify('Working: '+msg);
-    compactText.textContent = msg;
+    notify('Working: ' + msg);
+    if (!questionPending) {
+      setPillText('Working: ' + msg, 3);
+    }
     clearTimeout(compactResetTimer);
-    compactResetTimer = setTimeout(resetCompactLabel, 3000);
+    compactResetTimer = setTimeout(function() { clearPillPriority(3); }, 3000);
   });
 
   function since(ts) {
