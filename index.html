@@ -534,6 +534,15 @@
             </div>
           </div>
           <div class="setting-row">
+            <span class="setting-label">Answer Mode</span>
+            <div class="setting-control">
+              <div class="setting-radio" id="answerModeRadio">
+                <button class="setting-radio-opt active" data-val="island">Island</button>
+                <button class="setting-radio-opt" data-val="terminal">Terminal</button>
+              </div>
+            </div>
+          </div>
+          <div class="setting-row">
             <span class="setting-label">Position</span>
             <div class="setting-control">
               <button class="setting-btn" id="resetPosBtn">Reset to center</button>
@@ -670,12 +679,13 @@
   });
 
   // Settings
-  var currentSettings = { opacity: 0.88, pollingInterval: 1000, notifications: 'both', theme: 'dark' };
+  var currentSettings = { opacity: 0.88, pollingInterval: 1000, notifications: 'both', theme: 'dark', answerMode: 'island' };
 
   var opacitySlider = $('opacitySlider');
   var opacityVal2 = $('opacityVal');
   var pollingRadio = $('pollingRadio');
   var notifRadio = $('notifRadio');
+  var answerModeRadio = $('answerModeRadio');
   var themeToggle = $('themeToggle');
   var themeLabel = $('themeLabel');
   var resetPosBtn = $('resetPosBtn');
@@ -692,6 +702,11 @@
     if (notifRadio) {
       notifRadio.querySelectorAll('.setting-radio-opt').forEach(function(btn) {
         btn.classList.toggle('active', btn.getAttribute('data-val') === s.notifications);
+      });
+    }
+    if (answerModeRadio) {
+      answerModeRadio.querySelectorAll('.setting-radio-opt').forEach(function(btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-val') === (s.answerMode || 'island'));
       });
     }
     if (themeToggle) themeToggle.classList.toggle('on', s.theme === 'light');
@@ -738,6 +753,19 @@
           b.classList.toggle('active', b === btn);
         });
         saveSetting('notifications', val);
+      });
+    });
+  }
+
+  if (answerModeRadio) {
+    answerModeRadio.querySelectorAll('.setting-radio-opt').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var val = btn.getAttribute('data-val');
+        answerModeRadio.querySelectorAll('.setting-radio-opt').forEach(function(b) {
+          b.classList.toggle('active', b === btn);
+        });
+        saveSetting('answerMode', val);
       });
     });
   }

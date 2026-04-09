@@ -44,7 +44,8 @@ const DEFAULT_SETTINGS = {
   position: null,
   pollingInterval: 1000,
   notifications: 'both',
-  theme: 'dark'
+  theme: 'dark',
+  answerMode: 'island'
 };
 
 let appSettings = { ...DEFAULT_SETTINGS };
@@ -84,21 +85,30 @@ function startQuestionServer() {
       try {
         const msg = JSON.parse(line);
         if (msg.session_id && msg.questions) {
-          pendingQuestions.set(msg.session_id, socket);
-          socket.on('close', () => pendingQuestions.delete(msg.session_id));
-          socket.on('error', () => pendingQuestions.delete(msg.session_id));
-          if (mainWindow && !mainWindow.isDestroyed()) {
-            mainWindow.webContents.send('show-question', {
-              session_id: msg.session_id,
-              question: msg.questions[0].question,
-              options: msg.questions[0].options,
-              multiSelect: msg.questions[0].multiSelect || false,
-              allQuestions: msg.questions
-            });
-            const { width: sw } = screen.getPrimaryDisplay().workAreaSize;
-            const bounds = mainWindow.getBounds();
-            const x = Math.min(Math.max(bounds.x, 0), sw - EXPANDED_WIDTH);
-            mainWindow.setBounds({ x, y: bounds.y, width: EXPANDED_WIDTH, height: EXPANDED_HEIGHT }, true);
+          if (msg.mode === 'notify') {
+            // Terminal mode: just show a notification, don't hold socket
+            if (mainWindow && !mainWindow.isDestroyed()) {
+              const qText = msg.questions[0].question || 'Question pending';
+              showToast('? ' + qText.substring(0, 50), 'question');
+            }
+          } else {
+            // Island mode: hold socket, show full question panel
+            pendingQuestions.set(msg.session_id, socket);
+            socket.on('close', () => pendingQuestions.delete(msg.session_id));
+            socket.on('error', () => pendingQuestions.delete(msg.session_id));
+            if (mainWindow && !mainWindow.isDestroyed()) {
+              mainWindow.webContents.send('show-question', {
+                session_id: msg.session_id,
+                question: msg.questions[0].question,
+                options: msg.questions[0].options,
+                multiSelect: msg.questions[0].multiSelect || false,
+                allQuestions: msg.questions
+              });
+              const { width: sw } = screen.getPrimaryDisplay().workAreaSize;
+              const bounds = mainWindow.getBounds();
+              const x = Math.min(Math.max(bounds.x, 0), sw - EXPANDED_WIDTH);
+              mainWindow.setBounds({ x, y: bounds.y, width: EXPANDED_WIDTH, height: EXPANDED_HEIGHT }, true);
+            }
           }
         }
       } catch (e) {}

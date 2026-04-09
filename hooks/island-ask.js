@@ -1,7 +1,20 @@
 const net = require('net');
+const fs = require('fs');
+const path = require('path');
 
 const QUESTION_PORT = 47523;
 const TIMEOUT = 120000;
+const SETTINGS_FILE = path.join(process.env.HOME || process.env.USERPROFILE, '.claude', 'island-settings.json');
+
+function getAnswerMode() {
+  try {
+    const raw = fs.readFileSync(SETTINGS_FILE, 'utf-8');
+    const settings = JSON.parse(raw);
+    return settings.answerMode || 'island';
+  } catch (e) {
+    return 'island';
+  }
+}
 
 let input = '';
 process.stdin.setEncoding('utf-8');
@@ -17,12 +30,33 @@ process.stdin.on('end', () => {
 
     const questions = data.tool_input.questions;
     const sessionId = data.session_id || 'unknown';
+    const mode = getAnswerMode();
 
+    if (mode === 'terminal') {
+      // Terminal mode: send question to Island as notification, exit 0 so terminal shows it
+      const socket = net.createConnection({ port: QUESTION_PORT, host: '127.0.0.1' }, () => {
+        socket.write(JSON.stringify({
+          session_id: sessionId,
+          questions: questions,
+          timestamp: Date.now(),
+          mode: 'notify'
+        }) + '\n');
+        socket.end();
+        process.exit(0);
+      });
+      socket.on('error', () => { process.exit(0); });
+      socket.setTimeout(2000);
+      socket.on('timeout', () => { socket.destroy(); process.exit(0); });
+      return;
+    }
+
+    // Island mode: block and wait for answer via TCP
     const socket = net.createConnection({ port: QUESTION_PORT, host: '127.0.0.1' }, () => {
       socket.write(JSON.stringify({
         session_id: sessionId,
         questions: questions,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        mode: 'answer'
       }) + '\n');
     });
 
