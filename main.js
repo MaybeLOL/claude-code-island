@@ -84,9 +84,8 @@ function startQuestionServer() {
       try {
         const msg = JSON.parse(line);
         if (msg.session_id && msg.questions) {
-          pendingQuestions.set(msg.session_id, socket);
-          socket.on('close', () => pendingQuestions.delete(msg.session_id));
-          socket.on('error', () => pendingQuestions.delete(msg.session_id));
+          // Store session info for keystroke-based answering
+          pendingQuestions.set(msg.session_id, { questions: msg.questions });
           if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send('show-question', {
               session_id: msg.session_id,
@@ -602,9 +601,6 @@ app.whenReady().then(() => {
 
 app.on('before-quit', () => {
   if (questionServer) questionServer.close();
-  for (const [id, sock] of pendingQuestions) {
-    try { sock.end(); } catch (e) {}
-  }
   pendingQuestions.clear();
 });
 
@@ -625,15 +621,71 @@ ipcMain.on('jump-to-terminal', (event, pid) => {
   exec(`"${psPath}" -NoProfile -ExecutionPolicy Bypass -Command "${cmd}"`, () => {});
 });
 
-// Answer question — send answer back via TCP socket to the hook
+// Answer question — send keystrokes to the terminal to select the answer
 ipcMain.on('answer-question', (event, answer) => {
   const sessionId = answer.session_id;
-  const socket = sessionId ? pendingQuestions.get(sessionId) : null;
-  if (socket && !socket.destroyed) {
-    try {
-      socket.write(JSON.stringify(answer) + '\n');
-      socket.end();
-    } catch (e) {}
-    pendingQuestions.delete(sessionId);
+  const pending = sessionId ? pendingQuestions.get(sessionId) : null;
+  if (!pending) return;
+
+  // Find the session to get its PID for terminal focus
+  const sessions = readSessions();
+  const session = sessions.find(s => s.sessionId === sessionId) || sessions[0];
+  if (!session) return;
+
+  // Build the keystroke to send
+  let keystroke = '';
+  if (answer.customText && Object.keys(answer.customText).length > 0) {
+    // Free-text answer: type "Other" option number, then the text
+    const qi = Object.keys(answer.customText)[0];
+    const q = pending.questions[parseInt(qi)];
+    if (q) {
+      // "Other" is the last option + 1 in Claude Code's terminal UI
+      keystroke = String(q.options.length + 1) + '~' + answer.customText[qi];
+    }
+  } else if (answer.answers !== undefined) {
+    // Pick the first answered question's selection
+    const keys = Object.keys(answer.answers);
+    if (keys.length > 0) {
+      const sel = answer.answers[keys[0]];
+      if (Array.isArray(sel)) {
+        // Multi-select: type each number separated by commas
+        keystroke = sel.map(i => String(i + 1)).join(',');
+      } else {
+        // Single select: type the option number (1-indexed)
+        keystroke = String(sel + 1);
+      }
+    }
+  } else if (answer.index !== undefined) {
+    keystroke = String(answer.index + 1);
   }
+
+  if (!keystroke) return;
+
+  // Focus terminal and send keystroke
+  const psPath = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
+  // Escape the keystroke for PowerShell
+  const escaped = keystroke.replace(/'/g, "''");
+  const cmd = `
+    $c=${session.pid}
+    for($d=0;$d -lt 5;$d++){
+      $p=Get-Process -Id $c -EA SilentlyContinue
+      if($p -and $p.MainWindowHandle -ne [IntPtr]::Zero){
+        Add-Type '[DllImport("user32.dll")]public static extern bool SetForegroundWindow(IntPtr h);[DllImport("user32.dll")]public static extern bool ShowWindow(IntPtr h,int c);' -Name W -Namespace W
+        [W.W]::ShowWindow($p.MainWindowHandle,9)
+        [W.W]::SetForegroundWindow($p.MainWindowHandle)
+        Start-Sleep -Milliseconds 200
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.SendKeys]::SendWait('${escaped}')
+        Start-Sleep -Milliseconds 100
+        [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+        break
+      }
+      $w=Get-CimInstance Win32_Process -Filter "ProcessId=$c" -EA SilentlyContinue
+      if(-not $w -or -not $w.ParentProcessId){break}
+      $c=$w.ParentProcessId
+    }
+  `.replace(/\n\s*/g, ';').replace(/;+/g, ';');
+
+  exec(`"${psPath}" -NoProfile -ExecutionPolicy Bypass -Command "${cmd}"`, () => {});
+  pendingQuestions.delete(sessionId);
 });

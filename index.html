@@ -1093,7 +1093,13 @@
     }
   });
 
+  var lastToolStatusTime = 0;
+
   window.island.onToolStatus(function(s) {
+    // Deduplicate fs.watch double-fires on Windows
+    if (s.timestamp && s.timestamp === lastToolStatusTime) return;
+    lastToolStatusTime = s.timestamp || 0;
+
     if (s.label) {
       if (!questionPending) {
         setPillText(s.label, 2);
