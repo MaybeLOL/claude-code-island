@@ -511,8 +511,8 @@
             <span class="setting-label">Polling</span>
             <div class="setting-control">
               <div class="setting-radio" id="pollingRadio">
-                <button class="setting-radio-opt active" data-val="1500">Fast</button>
-                <button class="setting-radio-opt" data-val="3000">Normal</button>
+                <button class="setting-radio-opt active" data-val="1000">Fast</button>
+                <button class="setting-radio-opt" data-val="2000">Normal</button>
               </div>
             </div>
           </div>
@@ -557,6 +557,7 @@
   var sessionList = $('sessionList');
 
   var uiState = 'compact', ghostState = 'idle', running = false;
+  var rendererSessionStart = null;
   var dragging = false, dragT = 0;
   var currentTab = 'dashboard';
 
@@ -669,7 +670,7 @@
   });
 
   // Settings
-  var currentSettings = { opacity: 0.88, pollingInterval: 1500, notifications: 'both', theme: 'dark' };
+  var currentSettings = { opacity: 0.88, pollingInterval: 1000, notifications: 'both', theme: 'dark' };
 
   var opacitySlider = $('opacitySlider');
   var opacityVal2 = $('opacityVal');
@@ -936,7 +937,7 @@
   // --- DRAG ---
   island.addEventListener('mousedown', function(e) {
     if (e.button !== 0) return;
-    if (e.target.closest('.setting-slider, .setting-toggle, .setting-btn, .setting-radio-opt, .tab-btn, .exp-bell, .question-opt')) return;
+    if (e.target.closest('.setting-slider, .setting-toggle, .setting-btn, .setting-radio-opt, .tab-btn, .exp-bell, .question-opt, .question-free-input, .question-free-send')) return;
     dragging = false; dragT = Date.now();
     window.island.dragStart({x:e.screenX,y:e.screenY});
     function mv(ev){dragging=true;window.island.dragMove({x:ev.screenX,y:ev.screenY});}
@@ -1014,8 +1015,8 @@
   // --- IPC HANDLERS ---
   window.island.onSystemInfo(function(d) {
     cpuCompact.textContent = d.cpu+'%';
-    if (running && sessionStats.startTime) {
-      var elapsed = Math.floor((Date.now() - sessionStats.startTime) / 1000);
+    if (running && rendererSessionStart) {
+      var elapsed = Math.floor((Date.now() - rendererSessionStart) / 1000);
       var uptimeStr;
       if (elapsed < 60) uptimeStr = '0m';
       else if (elapsed < 3600) uptimeStr = Math.floor(elapsed / 60) + 'm';
@@ -1033,6 +1034,8 @@
 
   window.island.onClaudeStatus(function(d) {
     var was = running; running = d.running;
+    if (!was && running) rendererSessionStart = Date.now();
+    if (was && !running) rendererSessionStart = null;
     statusDot.className = 'status-dot'+(running?'':' off');
 
     if (running) {
@@ -1101,7 +1104,7 @@
         setPillText(qLabel, 1);
       }
     }
-    if (!s.needsInput && !answerPending) {
+    if (!s.needsInput && !answerPending && qPanel.classList.contains('active')) {
       hideQuestion();
     }
   });
@@ -1330,10 +1333,10 @@
 
   window.island.onNewPrompt(function(e) {
     var display = e.display?e.display.substring(0,40):'...';
-    if (running) {
-      compactText.textContent = display;
+    if (running && !questionPending) {
+      setPillText(display, 3);
       clearTimeout(compactResetTimer);
-      compactResetTimer = setTimeout(resetCompactLabel, 5000);
+      compactResetTimer = setTimeout(function() { clearPillPriority(3); }, 5000);
     }
   });
 
