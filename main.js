@@ -67,10 +67,10 @@ function saveSettings(data) {
   } catch (e) { console.error('Failed to save settings:', e.message); }
 }
 
-const COMPACT_WIDTH = 280;
-const COMPACT_HEIGHT = 48;
-const EXPANDED_WIDTH = 360;
-const EXPANDED_HEIGHT = 420;
+const COMPACT_WIDTH = 240;
+const COMPACT_HEIGHT = 42;
+const EXPANDED_WIDTH = 320;
+const EXPANDED_HEIGHT = 380;
 
 function startQuestionServer() {
   questionServer = net.createServer((socket) => {
