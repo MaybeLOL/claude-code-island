@@ -63,18 +63,18 @@
     display:flex; align-items:center; gap:8px;
     padding:0 12px 0 6px; height:42px;
   }
-  .ghost-mini { width:34px; height:34px; flex-shrink:0; display:block; position:relative; top:4px; left:3px; }
-  .ghost-big { width:48px; height:48px; flex-shrink:0; display:block; position:relative; top:3px; left:-4px; }
+  .ghost-mini { width:28px; height:28px; flex-shrink:0; display:block; position:relative; top:3px; left:2px; }
+  .ghost-big { width:40px; height:40px; flex-shrink:0; display:block; position:relative; top:2px; left:-3px; }
   .ghost-notif { width:24px; height:24px; display:block; }
-  .ghost-wrap { width:34px; height:34px; flex-shrink:0; display:block; line-height:0; transition:opacity 0.15s ease; filter:drop-shadow(0 2px 4px rgba(104,88,160,0.3)); }
-  .state-working .ghost-wrap { filter:drop-shadow(0 2px 4px rgba(216,144,128,0.3)); }
-  .state-success .ghost-wrap { filter:drop-shadow(0 2px 4px rgba(80,192,112,0.3)); }
-  .state-error .ghost-wrap { filter:drop-shadow(0 2px 4px rgba(192,96,96,0.3)); }
-  .exp-top .ghost-wrap { width:48px; height:48px; }
+  .ghost-wrap { width:28px; height:28px; flex-shrink:0; display:block; line-height:0; transition:opacity 0.15s ease; }
+  .state-working .ghost-wrap { }
+  .state-success .ghost-wrap { }
+  .state-error .ghost-wrap { }
+  .exp-top .ghost-wrap { width:40px; height:40px; }
   .status-dot {
     width:6px; height:6px; border-radius:50%; flex-shrink:0;
     background:var(--body); box-shadow:0 0 6px var(--body);
-    animation:pulse 2s ease-in-out infinite;
+    animation:pulse 2.5s ease-in-out infinite;
     transition:background 0.4s ease, box-shadow 0.4s ease;
   }
   .status-dot.off { background:#555; box-shadow:none; animation:none; }
@@ -96,7 +96,7 @@
   #island.expanded .compact-view { display:none; }
 
   .exp-top { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
-  .ghost-big { width:48px; height:48px; flex-shrink:0; }  .exp-info { flex:1; }
+  .ghost-big { width:40px; height:40px; flex-shrink:0; }  .exp-info { flex:1; }
   .exp-title { font-size:15px; font-weight:600; letter-spacing:-0.3px; }
   .exp-sub { font-size:11.5px; color:var(--body); font-weight:400; margin-top:2px; transition:color 0.4s ease; }
   .exp-x {
@@ -345,18 +345,18 @@
   ::-webkit-scrollbar-thumb { background:transparent; border-radius:2px; }
   *:hover::-webkit-scrollbar-thumb { background:#444; }
 
-  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
-  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
   @keyframes bob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-2px);} }
   @keyframes bobFast { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-2px);} }
-  @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-1px);} 75%{transform:translateX(1px);} }
-  @keyframes bounce { 0%{transform:translateY(0);} 30%{transform:translateY(-4px);} 60%{transform:translateY(0);} }
-  @keyframes qpulse { 0%,100%{border-color:rgba(255,255,255,0.08);} 50%{border-color:var(--body);} }
+  @keyframes ghostPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.08);} }
+  @keyframes ghostShake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-1.5px);} 75%{transform:translateX(1.5px);} }
+  @keyframes qpulse { 0%,100%{border-color:rgba(255,255,255,0.06);} 50%{border-color:rgba(255,255,255,0.15);} }
+  @keyframes tabFade { from{opacity:0;} to{opacity:1;} }
 
   .state-idle .ghost-wrap { animation:bob 3s ease-in-out infinite; }
   .state-working .ghost-wrap { animation:bobFast 1.5s ease-in-out infinite; }
-  .state-success .ghost-wrap { animation:bounce 0.6s ease-out; }
-  .state-error .ghost-wrap { animation:shake 0.3s ease-in-out infinite; }
+  .state-success .ghost-wrap { animation:ghostPulse 0.4s ease-out; }
+  .state-error .ghost-wrap { animation:ghostShake 0.3s ease-in-out 2; }
 </style>
 </head>
 <body>
@@ -956,7 +956,7 @@
 
   function repositionToasts() {
     for (var i = 0; i < toastStack.length; i++) {
-      toastStack[i].style.top = (54 + i * 48) + 'px';
+      toastStack[i].style.top = (48 + i * 40) + 'px';
     }
   }
 
