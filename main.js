@@ -508,6 +508,7 @@ function watchStatus() {
         const entry = {
           tool: status.tool,
           label: status.label,
+          detail: status.detail || '',
           timestamp: Date.now(),
           needsInput: status.needsInput || false
         };
