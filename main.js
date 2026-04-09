@@ -76,6 +76,7 @@ const EXPANDED_HEIGHT = 380;
 function startQuestionServer() {
   questionServer = net.createServer((socket) => {
     let buf = '';
+    socket.on('error', () => {}); // Prevent ECONNRESET crash
     socket.on('data', (chunk) => {
       buf += chunk.toString();
       const newlineIdx = buf.indexOf('\n');
