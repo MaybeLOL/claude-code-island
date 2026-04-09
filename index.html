@@ -5,18 +5,18 @@
 <title>Claude Code Island</title>
 <style>
   :root {
-    --hi: #d0c8f0; --body: #b8aedd; --shadow: #6858a0; --face: #6858a0;
-    --bg-tint: rgba(22,20,35,0.88);
+    --hi: #c8c0e0; --body: #b0a8d0; --shadow: #6858a0; --face: #6858a0;
+    --bg-tint: rgba(30,30,30,0.72);
     --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     --ios: cubic-bezier(0.25, 0.1, 0.25, 1);
   }
-  .state-idle    { --hi:#d0c8f0;--body:#b8aedd;--shadow:#6858a0;--face:#6858a0;--bg-tint:rgba(22,20,35,0.88); }
-  .state-working { --hi:#f4c0b0;--body:#e8a090;--shadow:#d89080;--face:#5a2020;--bg-tint:rgba(35,22,22,0.88); }
-  .state-success { --hi:#a0f0b8;--body:#70e090;--shadow:#50c070;--face:#1a6040;--bg-tint:rgba(20,35,25,0.88); }
-  .state-error   { --hi:#f0a8a8;--body:#e08080;--shadow:#c06060;--face:#6a2020;--bg-tint:rgba(35,20,20,0.88); }
+  .state-idle    { --hi:#c8c0e0;--body:#b0a8d0;--shadow:#6858a0;--face:#6858a0;--bg-tint:rgba(30,30,30,0.72); }
+  .state-working { --hi:#f0c8a0;--body:#e0a878;--shadow:#c89068;--face:#5a3020;--bg-tint:rgba(35,28,22,0.72); }
+  .state-success { --hi:#a0e8b8;--body:#78c890;--shadow:#58a870;--face:#1a5838;--bg-tint:rgba(22,32,26,0.72); }
+  .state-error   { --hi:#e8b0b0;--body:#d08080;--shadow:#b06060;--face:#6a2020;--bg-tint:rgba(35,22,22,0.72); }
 
   /* Light theme overrides */
-  .theme-light { --bg-tint:rgba(240,238,250,0.92); }
+  .theme-light { --bg-tint:rgba(245,243,250,0.78); }
   .theme-light .compact-label, .theme-light .exp-title { color:#111; }
   .theme-light .exp-sub, .theme-light .label, .theme-light .m-label { color:#555; }
   .theme-light .m-val, .theme-light .t-name, .theme-light .sess-path { color:#222; }
@@ -45,20 +45,20 @@
   }
   .pill {
     background:var(--bg-tint);
-    backdrop-filter:blur(50px); -webkit-backdrop-filter:blur(50px);
-    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(60px); -webkit-backdrop-filter:blur(60px);
+    border:1px solid rgba(255,255,255,0.15);
     overflow:hidden;
-    transition:all 0.4s var(--spring);
-    box-shadow:none;
+    transition:all 0.3s var(--spring);
+    box-shadow:0 8px 32px rgba(0,0,0,0.3), inset 0 0.5px 0 rgba(255,255,255,0.12);
   }
-  .state-working .pill { box-shadow:none; }
-  .state-success .pill { box-shadow:none; }
-  .state-error .pill { box-shadow:none; }
-  #island.compact .pill:hover { transform:scale(1.02); }
+  .state-working .pill { box-shadow:0 8px 32px rgba(0,0,0,0.3), inset 0 0.5px 0 rgba(255,255,255,0.12); }
+  .state-success .pill { box-shadow:0 8px 32px rgba(0,0,0,0.3), inset 0 0.5px 0 rgba(255,255,255,0.12); }
+  .state-error .pill { box-shadow:0 8px 32px rgba(0,0,0,0.3), inset 0 0.5px 0 rgba(255,255,255,0.12); }
+  #island.compact .pill:hover { transform:scale(1.015); }
 
   /* Compact */
-  #island.compact { width:280px; height:48px; }
-  #island.compact .pill { height:48px; border-radius:24px; }
+  #island.compact { width:240px; height:42px; }
+  #island.compact .pill { height:42px; border-radius:21px; }
   .compact-view {
     display:flex; align-items:center; gap:10px;
     padding:0 14px 0 8px; height:48px;
@@ -89,8 +89,8 @@
   }
 
   /* Expanded */
-  #island.expanded { width:360px; height:420px; }
-  #island.expanded .pill { height:420px; border-radius:28px; }
+  #island.expanded { width:320px; height:380px; }
+  #island.expanded .pill { height:380px; border-radius:24px; }
   .expanded-view { display:none; flex-direction:column; padding:20px; height:100%; overflow:hidden; }
   #island.expanded .expanded-view { display:flex; }
   #island.expanded .compact-view { display:none; }
