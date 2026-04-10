@@ -1,80 +1,110 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="460" viewBox="0 0 400 460">
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="420" viewBox="0 0 360 420">
+  <defs>
+    <filter id="shadow" x="-10%" y="-5%" width="120%" height="115%">
+      <feDropShadow dx="0" dy="4" stdDeviation="10" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
   <!-- Panel background -->
-  <rect x="20" y="10" width="360" height="420" rx="28" fill="#161423" fill-opacity="0.95" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <rect x="20" y="10" width="320" height="380" rx="24" fill="#1e1e1e" fill-opacity="0.72" stroke="rgba(255,255,255,0.15)" stroke-width="1" filter="url(#shadow)"/>
+  <line x1="44" y1="11" x2="316" y2="11" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
 
-  <!-- Header: Ghost + Title + Close -->
-  <g transform="translate(40,30)">
-    <!-- Ghost (working state - peach) -->
-    <g transform="translate(0,0) scale(1.5)">
-      <rect x="4" y="0" width="4" height="2" fill="#f4c0b0"/>
-      <rect x="2" y="2" width="8" height="2" fill="#f4c0b0"/>
-      <rect x="0" y="4" width="12" height="2" fill="#e8a090"/>
-      <rect x="0" y="6" width="12" height="2" fill="#f4c0b0"/>
-      <rect x="0" y="8" width="12" height="2" fill="#e8a090"/>
-      <rect x="0" y="10" width="12" height="2" fill="#d89080"/>
-      <rect x="0" y="12" width="12" height="2" fill="#d89080"/>
-      <rect x="0" y="14" width="4" height="2" fill="#d89080" opacity="0.6"/>
-      <rect x="4" y="14" width="4" height="2" fill="#d89080" opacity="0.5"/>
-      <rect x="8" y="14" width="4" height="2" fill="#d89080" opacity="0.6"/>
-      <!-- Open eyes -->
-      <rect x="2" y="6" width="3" height="3" fill="#5a2020"/>
-      <rect x="7" y="6" width="3" height="3" fill="#5a2020"/>
-      <rect x="3" y="6" width="1" height="1" fill="#fff"/>
-      <rect x="8" y="6" width="1" height="1" fill="#fff"/>
+  <!-- Header: Ghost + Title + Bell + Close -->
+  <g transform="translate(36,26)">
+    <!-- Ghost (working state - amber line-art) -->
+    <g transform="translate(0,2) scale(1.25)">
+      <path d="M10,18 Q10,20 12,20 L12,19 Q13,20 14,19 L14,20 Q15,20 16,18 Q16,20 18,20 L18,19 Q19,20 20,19 L20,20 Q22,20 22,18 L22,10 Q22,4 16,4 Q10,4 10,10 Z" fill="none" stroke="#e0a878" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <ellipse cx="13" cy="10.5" rx="1.5" ry="2" fill="none" stroke="#e0a878" stroke-width="1.5"/>
+      <circle cx="13" cy="10.5" r="0.6" fill="#e0a878"/>
+      <ellipse cx="19" cy="10.5" rx="1.5" ry="2" fill="none" stroke="#e0a878" stroke-width="1.5"/>
+      <circle cx="19" cy="10.5" r="0.6" fill="#e0a878"/>
+      <ellipse cx="16" cy="15" rx="1.2" ry="1" fill="none" stroke="#e0a878" stroke-width="1.5"/>
     </g>
     <!-- Title -->
-    <text x="55" y="14" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="16" font-weight="700" fill="#ffffff" letter-spacing="-0.4">Claude Code</text>
-    <text x="55" y="32" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12" font-weight="500" fill="#e8a090">1 session running</text>
-    <!-- Close button -->
-    <circle cx="295" cy="14" r="14" fill="rgba(255,255,255,0.06)"/>
-    <line x1="290" y1="9" x2="300" y2="19" stroke="#666" stroke-width="2" stroke-linecap="round"/>
-    <line x1="300" y1="9" x2="290" y2="19" stroke="#666" stroke-width="2" stroke-linecap="round"/>
+    <text x="46" y="14" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="15" font-weight="600" fill="#ffffff" letter-spacing="-0.3">Claude Code</text>
+    <text x="46" y="30" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="11.5" font-weight="400" fill="#e0a878">1 session running</text>
+    <!-- Bell -->
+    <circle cx="256" cy="14" r="12" fill="rgba(255,255,255,0.04)"/>
+    <path d="M252,12 a4,4 0 0,1 8,0 c0,5-2,6-2,6 h-12 s-2-1-2-6" fill="none" stroke="#666" stroke-width="1.5" stroke-linecap="round" transform="translate(2,0)"/>
+    <!-- Close -->
+    <circle cx="284" cy="14" r="12" fill="rgba(255,255,255,0.04)"/>
+    <line x1="280" y1="10" x2="288" y2="18" stroke="#666" stroke-width="2" stroke-linecap="round"/>
+    <line x1="288" y1="10" x2="280" y2="18" stroke="#666" stroke-width="2" stroke-linecap="round"/>
   </g>
 
   <!-- Question Panel -->
-  <rect x="40" y="85" width="320" height="165" rx="14" fill="rgba(255,255,255,0.03)"/>
-  <text x="52" y="108" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12" font-weight="600" fill="#ffffff">Which approach do you want?</text>
+  <rect x="36" y="72" width="288" height="148" rx="12" fill="rgba(255,255,255,0.04)">
+    <animate attributeName="stroke" values="rgba(255,255,255,0.06);rgba(255,255,255,0.15);rgba(255,255,255,0.06)" dur="3s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="36" y="72" width="288" height="148" rx="12" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <text x="48" y="92" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="11.5" font-weight="600" fill="#ffffff">Which approach do you want?</text>
 
   <!-- Option 1 -->
-  <rect x="52" y="118" width="296" height="38" rx="10" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-  <text x="64" y="135" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12" font-weight="600" fill="#ffffff">1. TCP Socket (Recommended)</text>
-  <text x="64" y="149" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" fill="#888888">Most reliable, multi-session support</text>
+  <rect x="48" y="100" width="264" height="34" rx="10" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <text x="58" y="115" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="11.5" font-weight="600" fill="#ffffff">1. Enhanced Hooks (Recommended)</text>
+  <text x="58" y="127" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="9.5" fill="#888">Richer data, no new dependencies</text>
 
   <!-- Option 2 -->
-  <rect x="52" y="162" width="296" height="38" rx="10" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-  <text x="64" y="179" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12" font-weight="600" fill="#ffffff">2. File Polling</text>
-  <text x="64" y="193" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" fill="#888888">Simpler but has race conditions</text>
+  <rect x="48" y="138" width="264" height="34" rx="10" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <text x="58" y="153" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="11.5" font-weight="600" fill="#ffffff">2. Unified TCP Channel</text>
+  <text x="58" y="165" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="9.5" fill="#888">Real-time, more complex</text>
 
-  <!-- Option 3 -->
-  <rect x="52" y="206" width="296" height="30" rx="10" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-  <text x="64" y="225" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="12" font-weight="600" fill="#ffffff">3. Something else</text>
+  <!-- Other option -->
+  <rect x="48" y="176" width="264" height="28" rx="10" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <text x="58" y="194" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="11.5" font-weight="600" fill="#888">Other...</text>
 
-  <!-- Activity -->
-  <text x="40" y="275" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" font-weight="600" fill="#555555" letter-spacing="0.8" text-transform="uppercase">ACTIVITY</text>
-  <rect x="40" y="282" width="320" height="50" rx="14" fill="rgba(0,0,0,0.3)"/>
-  <text x="54" y="300" font-family="SF Mono,Cascadia Code,Fira Code,monospace" font-size="11" fill="#e8a090">[14:32] Reading main.js...</text>
-  <text x="54" y="318" font-family="SF Mono,Cascadia Code,Fira Code,monospace" font-size="11" fill="#666666">[14:31] Editing index.html</text>
-  <rect x="220" y="310" width="7" height="12" rx="1" fill="#e8a090">
-    <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
-  </rect>
+  <!-- Timeout bar -->
+  <rect x="48" y="210" width="264" height="2" rx="1" fill="rgba(255,255,255,0.06)"/>
+  <rect x="48" y="210" width="66" height="2" rx="1" fill="#b0a8d0"/>
+
+  <!-- Tab bar -->
+  <g transform="translate(36,228)">
+    <!-- Active tab pill background -->
+    <rect x="0" y="0" width="96" height="28" rx="8" fill="rgba(255,255,255,0.08)"/>
+    <text x="48" y="18" text-anchor="middle" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="10" font-weight="600" fill="#ffffff" letter-spacing="0.5">DASHBOARD</text>
+    <text x="144" y="18" text-anchor="middle" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="10" font-weight="600" fill="#666" letter-spacing="0.5">ACTIVITY</text>
+    <text x="240" y="18" text-anchor="middle" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="10" font-weight="600" fill="#666" letter-spacing="0.5">SETTINGS</text>
+  </g>
 
   <!-- Meters -->
-  <text x="40" y="352" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" font-weight="600" fill="#555555">CPU</text>
-  <text x="170" y="352" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" font-weight="700" fill="#ffffff" text-anchor="end">24%</text>
-  <rect x="40" y="356" width="130" height="3" rx="2" fill="rgba(255,255,255,0.06)"/>
-  <rect x="40" y="356" width="31" height="3" rx="2" fill="#e8a090"/>
+  <g transform="translate(36,264)">
+    <text x="0" y="0" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="9" font-weight="600" fill="#666">CPU</text>
+    <text x="130" y="0" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="10" font-weight="700" fill="#fff" text-anchor="end">24%</text>
+    <rect x="0" y="4" width="130" height="3" rx="2" fill="rgba(255,255,255,0.06)"/>
+    <rect x="0" y="4" width="31" height="3" rx="2" fill="#e0a878"/>
 
-  <text x="210" y="352" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" font-weight="600" fill="#555555">Memory</text>
-  <text x="360" y="352" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" font-weight="700" fill="#ffffff" text-anchor="end">8.2/16G</text>
-  <rect x="210" y="356" width="150" height="3" rx="2" fill="rgba(255,255,255,0.06)"/>
-  <rect x="210" y="356" width="77" height="3" rx="2" fill="#e8a090"/>
+    <text x="148" y="0" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="9" font-weight="600" fill="#666">MEMORY</text>
+    <text x="288" y="0" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="10" font-weight="700" fill="#fff" text-anchor="end">8.2/16G</text>
+    <rect x="148" y="4" width="140" height="3" rx="2" fill="rgba(255,255,255,0.06)"/>
+    <rect x="148" y="4" width="72" height="3" rx="2" fill="#e0a878"/>
+  </g>
 
-  <!-- Sessions -->
-  <text x="40" y="382" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" font-weight="600" fill="#555555" letter-spacing="0.8">SESSIONS</text>
-  <rect x="40" y="388" width="320" height="28" rx="12" fill="rgba(255,255,255,0.03)"/>
-  <circle cx="56" cy="402" r="3" fill="#e8a090">
-    <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+  <!-- Stats row -->
+  <g transform="translate(36,282)">
+    <text x="0" y="0" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="9" font-weight="600" fill="#666">DURATION</text>
+    <text x="0" y="14" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="12" font-weight="700" fill="#fff">4m</text>
+    <text x="96" y="0" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="9" font-weight="600" fill="#666">PROMPTS</text>
+    <text x="96" y="14" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="12" font-weight="700" fill="#fff">12</text>
+    <text x="192" y="0" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="9" font-weight="600" fill="#666">TOOLS</text>
+    <text x="192" y="14" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="12" font-weight="700" fill="#fff">47</text>
+  </g>
+
+  <!-- Sessions label -->
+  <text x="36" y="316" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="9" font-weight="600" fill="#666" letter-spacing="0.8">SESSIONS</text>
+  <!-- Session row -->
+  <rect x="36" y="322" width="288" height="26" rx="10" fill="rgba(255,255,255,0.04)"/>
+  <circle cx="50" cy="335" r="2.5" fill="#e0a878">
+    <animate attributeName="opacity" values="1;0.4;1" dur="2.5s" repeatCount="indefinite"/>
   </circle>
-  <text x="68" y="406" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="11" font-weight="500" fill="#dddddd">claude-code-island</text>
-  <text x="330" y="406" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="10" fill="#555555" text-anchor="end">12m</text>
+  <text x="60" y="339" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="10.5" font-weight="500" fill="#ddd">claude-code-island</text>
+  <text x="185" y="339" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="9" font-weight="500" fill="#e0a878">Fix auth bug</text>
+  <text x="304" y="339" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="9" fill="#555" text-anchor="end">4m</text>
+
+  <!-- Tasks label -->
+  <text x="36" y="364" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="9" font-weight="600" fill="#666" letter-spacing="0.8">TASKS</text>
+  <!-- Tasks box -->
+  <rect x="36" y="370" width="288" height="14" rx="10" fill="rgba(255,255,255,0.04)"/>
+  <circle cx="50" cy="377" r="3" fill="#e0a878">
+    <animate attributeName="opacity" values="1;0.4;1" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  <text x="60" y="381" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="10.5" font-weight="500" fill="#ddd">Fix auth bug</text>
 </svg>

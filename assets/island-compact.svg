@@ -1,35 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="320" height="68" viewBox="0 0 320 68">
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="62" viewBox="0 0 300 62">
   <defs>
-    <filter id="blur" x="-10%" y="-10%" width="120%" height="120%">
-      <feGaussianBlur stdDeviation="2"/>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.3"/>
     </filter>
   </defs>
   <!-- Pill background -->
-  <rect x="20" y="10" width="280" height="48" rx="24" fill="#161423" fill-opacity="0.95" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-  <!-- Ghost body -->
-  <g transform="translate(38,18)">
-    <rect x="4" y="0" width="4" height="2" fill="#d0c8f0"/>
-    <rect x="2" y="2" width="8" height="2" fill="#d0c8f0"/>
-    <rect x="0" y="4" width="12" height="2" fill="#b8aedd"/>
-    <rect x="0" y="6" width="12" height="2" fill="#d0c8f0"/>
-    <rect x="0" y="8" width="12" height="2" fill="#b8aedd"/>
-    <rect x="0" y="10" width="12" height="2" fill="#6858a0"/>
-    <rect x="0" y="12" width="12" height="2" fill="#6858a0"/>
-    <rect x="0" y="14" width="4" height="2" fill="#6858a0" opacity="0.6"/>
-    <rect x="4" y="14" width="4" height="2" fill="#6858a0" opacity="0.5"/>
-    <rect x="8" y="14" width="4" height="2" fill="#6858a0" opacity="0.6"/>
-    <!-- Sleeping eyes -->
-    <rect x="2" y="7" width="3" height="1" fill="#6858a0"/>
-    <rect x="7" y="7" width="3" height="1" fill="#6858a0"/>
-    <rect x="4" y="10" width="4" height="1" fill="#6858a0" opacity="0.5"/>
+  <rect x="30" y="10" width="240" height="42" rx="21" fill="#1e1e1e" fill-opacity="0.72" stroke="rgba(255,255,255,0.15)" stroke-width="1" filter="url(#shadow)"/>
+  <!-- Inner highlight -->
+  <line x1="52" y1="11" x2="248" y2="11" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+  <!-- Ghost (line-art) -->
+  <g transform="translate(44,16) scale(0.88)">
+    <path d="M10,18 Q10,20 12,20 L12,19 Q13,20 14,19 L14,20 Q15,20 16,18 Q16,20 18,20 L18,19 Q19,20 20,19 L20,20 Q22,20 22,18 L22,10 Q22,4 16,4 Q10,4 10,10 Z" fill="none" stroke="#b0a8d0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="13" cy="11" r="1" fill="#b0a8d0"/>
+    <circle cx="19" cy="11" r="1" fill="#b0a8d0"/>
+    <path d="M14,14.5 Q16,15.5 18,14.5" fill="none" stroke="#b0a8d0" stroke-width="1.5" stroke-linecap="round"/>
   </g>
   <!-- Status dot -->
-  <circle cx="72" cy="34" r="3" fill="#b8aedd">
-    <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+  <circle cx="78" cy="31" r="3" fill="#b0a8d0">
+    <animate attributeName="opacity" values="1;0.4;1" dur="2.5s" repeatCount="indefinite"/>
   </circle>
   <!-- Label -->
-  <text x="84" y="38" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="13" font-weight="600" fill="#ffffff">Idling...</text>
-  <!-- CPU/MEM -->
-  <text x="230" y="36" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="11" font-weight="500" fill="#666666">12%</text>
-  <text x="262" y="36" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="11" font-weight="500" fill="#666666">8.2G</text>
+  <text x="88" y="34" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="12.5" font-weight="500" fill="#ffffff" letter-spacing="-0.2">Reading src/main.js</text>
+  <!-- CPU + Uptime -->
+  <text x="228" y="33" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="10" font-weight="500" fill="#777">12%</text>
+  <text x="250" y="33" font-family="-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif" font-size="10" font-weight="500" fill="#777">4m</text>
 </svg>
